@@ -1,0 +1,21 @@
+﻿<Window x:Name="inviteToServerWindow" x:Class="Commons.InviteToServerWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Commons"
+        mc:Ignorable="d"
+        Title="Invite to Server" Height="201" Width="400" Background="{DynamicResource DefaultBackgroundColor}" Topmost="True" ShowInTaskbar="False" ResizeMode="NoResize" WindowStartupLocation="CenterOwner" SourceInitialized="Window_SourceInitialized">
+    <Grid Margin="35,0,35,21">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition Width="0*"/>
+        </Grid.ColumnDefinitions>
+        <Label Content="Server Link" Background="{x:Null}" Foreground="{DynamicResource DefaultTextColor}" Padding="0,0,0,0" HorizontalAlignment="Left" Margin="0,27,0,0" Height="23" VerticalAlignment="Top"/>
+        <Border BorderThickness="1,1,1,1" VerticalAlignment="Top" Height="30" Margin="0,50,0,0" Background="{DynamicResource DefaultTextboxColor}" CornerRadius="4,4,4,4">
+            <TextBox x:Name="serverLinkTextBox" TextWrapping="Wrap" Margin="0,0,-2,0" Background="{x:Null}" BorderBrush="{x:Null}" CaretBrush="#FFDFE0E9" Foreground="{DynamicResource DefaultTextColor}" IsReadOnly="True"/>
+        </Border>
+        <Button Content="OK" Width="100" VerticalAlignment="Bottom" HorizontalAlignment="Right" Height="35" IsDefault="True" Click="Button_Click"/>
+
+    </Grid>
+</Window>

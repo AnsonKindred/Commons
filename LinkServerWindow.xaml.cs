@@ -5,11 +5,11 @@ namespace Commons
     /// <summary>
     /// Interaction logic for LinkServerWindow.xaml
     /// </summary>
-    public partial class LinkServerWindow : Window
+    public partial class LinkSpaceWindow : Window
     {
-        public string ServerLink { get; private set; } = "";
+        public string SpaceLink { get; private set; } = "";
 
-        public LinkServerWindow()
+        public LinkSpaceWindow()
         {
             InitializeComponent();
             this.Owner = Application.Current.MainWindow;
@@ -19,7 +19,7 @@ namespace Commons
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            ServerLink = serverLinkTextBox.Text;
+            SpaceLink = serverLinkTextBox.Text;
             DialogResult = true;
             this.Close();
         }

@@ -17,10 +17,13 @@ namespace Commons
 
         protected TcpListener? listener;
         protected TcpClient? localClient;
+        protected NetworkStream? localClientStream => localClient?.GetStream();
         protected List<TcpClient> connectedClients = new();
         protected NobleConnect.Peer noblePeer;
 
         internal IPEndPoint NobleEndPoint => noblePeer.RelayEndPoint;
+
+        public bool IsConnected => localClient?.Connected ?? false;
 
         protected bool isRunning = true;
 
@@ -36,6 +39,7 @@ namespace Commons
             config.origin = parts[0];
             config.username = parts[1];
             config.password = parts[2];
+            config.bufferSize = 44100;
             config.iceServerAddress = "us-east.connect.noblewhale.com";
             config.icePort = 3478;
             config.protocolType = ProtocolType.Tcp;

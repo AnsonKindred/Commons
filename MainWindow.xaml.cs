@@ -10,8 +10,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
+using System.Windows.Media.Animation;
 using Microsoft.EntityFrameworkCore;
-using NAudio.Wave;
 using NobleConnect;
 
 namespace Commons
@@ -24,14 +24,9 @@ namespace Commons
         private readonly CommonsContext _context = new CommonsContext();
 
         private Client? localClient;
-        private Space? currentServer;
-        private CollectionViewSource serversViewSource;
-
-        public static DataGrid? TheServerList;
-
-        private Dictionary<Space, SpaceNetworker> serverNetworkers = new();
-
-        WaveInEvent waveIn;
+        internal Space? CurrentSpace { get; private set; }
+        private CollectionViewSource spacesViewSource;
+        private AudioController audioController;
 
         public MainWindow()
         {
@@ -39,47 +34,39 @@ namespace Commons
             Logger.logLevel = Logger.Level.Debug;
 
             InitializeComponent();
-            serversViewSource = (CollectionViewSource)FindResource(nameof(serversViewSource));
-
-            waveIn = new WaveInEvent();
-            waveIn.StartRecording();
-            waveIn.DataAvailable += WaveDataIn;
-        }
-
-        void WaveDataIn(object? sender, WaveInEventArgs waveArgs)
-        {
-            //waveArgs.Buffer, 0, waveArgs.BytesRecorded);
+            spacesViewSource = (CollectionViewSource)FindResource(nameof(spacesViewSource));
+            audioController = new AudioController();
         }
 
         protected override void OnClosed(EventArgs e)
         {
-            foreach (var kv in serverNetworkers)
+            foreach (var space in _context.Spaces)
             {
-                kv.Value.Dispose();
+                if (space != null && space.SpaceNetworker != null)
+                {
+                    space.SpaceNetworker.Dispose();
+                }
             }
         }
 
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            TheServerList = ServerList;
-
             // this is for demo purposes only, to make it easier
             // to get up and running
             _context.Database.EnsureDeleted();
             _context.Database.EnsureCreated();
 
-            _context.Servers.Load();
+            _context.Spaces.Load();
             _context.Chats.Load();
             _context.Clients.Load();
 
-            // Set server list data source so it pulls from the Servers table
-            serversViewSource.Source = _context.Servers.Local.ToObservableCollection();
+            // Set space list data source so it pulls from the Spaces table
+            spacesViewSource.Source = _context.Spaces.Local.ToObservableCollection();
 
-            foreach (Space server in _context.Servers.Where(s => s.IsLocal))
+            foreach (Space space in _context.Spaces.Where(s => s.IsLocal))
             {
-                var serverNetworker = new SpaceNetworker(_context, server);
-                await serverNetworker.HostSpace();
-                serverNetworkers.Add(server, serverNetworker);
+                var spaceNetworker = new SpaceNetworker(_context, space, audioController);
+                await spaceNetworker.HostSpace();
             }
 
             if (_context.Clients.Count() == 0)
@@ -100,21 +87,22 @@ namespace Commons
             {
                 localClient = _context.Clients.First();
             }
-            if (localClient != null && _context.Servers.Count() != 0)
+            if (localClient != null && _context.Spaces.Count() != 0)
             {
-                await SetCurrentServer(_context.Servers.First());
+                await SetCurrentSpace(_context.Spaces.First());
             }
         }
 
         private async void SendChat(object sender, RoutedEventArgs e)
         {
             if (localClient == null) return;
-            if (currentServer == null) return;
+            if (CurrentSpace == null) return;
+            if (CurrentSpace.SpaceNetworker == null) return;
 
             Chat newChat = new Chat {
-                ServerID = currentServer.ID,
+                SpaceID = CurrentSpace.ID,
                 ClientID = localClient.ID,
-                Server = currentServer,
+                Space = CurrentSpace,
                 Client = localClient,
                 Content = ((TextBox)sender).Text,
                 Timestamp = DateTime.UtcNow.Ticks
@@ -122,7 +110,7 @@ namespace Commons
             _context.Chats.Add(newChat);
             _context.SaveChanges();
 
-            await serverNetworkers[currentServer].ControlPeer.SendChat(newChat);
+            await CurrentSpace.SpaceNetworker.ControlPeer.SendChat(newChat);
         }
 
         private void AddChatText(Chat chat)
@@ -144,75 +132,80 @@ namespace Commons
             }
         }
 
-        private async void AddServer_Button_Click(object sender, RoutedEventArgs e)
+        private async void AddSpace_Button_Click(object sender, RoutedEventArgs e)
         {
             if (localClient == null) return;
 
-            AddServerWindow addServerWindow = new AddServerWindow();
-            if (addServerWindow.ShowDialog().Equals(true))
+            AddSpaceWindow addSpaceWindow = new AddSpaceWindow();
+            if (addSpaceWindow.ShowDialog().Equals(true))
             {
-                Space newServer = new Space { Name = addServerWindow.ServerName, Address = IPAddress.Any.ToString(), Port = 0, IsLocal = true };
-                localClient.Servers.Add(newServer);
+                Space newSpace = new Space { Name = addSpaceWindow.SpaceName, Address = IPAddress.Any.ToString(), Port = 0, IsLocal = true };
+                localClient.Spaces.Add(newSpace);
                 _context.SaveChanges();
 
-                var serverNetworker = new SpaceNetworker(_context, newServer);
-                serverNetworkers.Add(newServer, serverNetworker);
-                await serverNetworker.HostSpace();
+                var spaceNetworker = new SpaceNetworker(_context, newSpace, audioController);
+                await spaceNetworker.HostSpace();
 
-                await SetCurrentServer(newServer);
+                await SetCurrentSpace(newSpace);
             }
         }
 
-        private async void LinkServer_Button_Click(object sender, RoutedEventArgs e)
+        private async void LinkSpace_Button_Click(object sender, RoutedEventArgs e)
         {
             if (localClient == null) return;
 
-            LinkServerWindow linkServerWindow = new LinkServerWindow();
-            if (linkServerWindow.ShowDialog().Equals(true))
+            LinkSpaceWindow linkSpaceWindow = new LinkSpaceWindow();
+            if (linkSpaceWindow.ShowDialog().Equals(true))
             {
-                IPEndPoint endpoint = IPEndPoint.Parse(linkServerWindow.ServerLink);
-                Space newServer = new Space { Name = "Connecting...", Address = endpoint.Address.ToString(), Port = endpoint.Port, IsLocal = false };
-                localClient.Servers.Add(newServer);
+                IPEndPoint endpoint = IPEndPoint.Parse(linkSpaceWindow.SpaceLink);
+                Space newSpace = new Space { Name = "Connecting...", Address = endpoint.Address.ToString(), Port = endpoint.Port, IsLocal = false };
+                localClient.Spaces.Add(newSpace);
                 _context.SaveChanges();
-                await SetCurrentServer(newServer);
+                await SetCurrentSpace(newSpace);
             }
         }
 
-        private async Task SetCurrentServer(Space server)
+        private async Task SetCurrentSpace(Space space)
         {
             if (localClient == null) return;
 
-            Trace.WriteLine("Setting current server: " + server.ID);
-            if (currentServer != null)
+            Trace.WriteLine("Setting current space: " + space.ID);
+            if (CurrentSpace != null)
             {
-                ((ObservableCollection<Chat>)currentServer.Chats).CollectionChanged -= OnChatsChanged;
+                ((ObservableCollection<Chat>)CurrentSpace.Chats).CollectionChanged -= OnChatsChanged;
+                if (CurrentSpace.SpaceNetworker != null)
+                {
+                    audioController.OnWaveDataIn -= CurrentSpace.SpaceNetworker.VoipPeer.Send;
+                }
             }
             chatWindow.Document.Blocks.Clear();
-            currentServer = server;
-            foreach (Chat chat in currentServer.Chats)
+            CurrentSpace = space;
+            foreach (Chat chat in CurrentSpace.Chats)
             {
                 AddChatText(chat);
             }
 
-            ((ObservableCollection<Chat>)currentServer.Chats).CollectionChanged += OnChatsChanged;
-
-            if (!currentServer.IsLocal)
+            ((ObservableCollection<Chat>)CurrentSpace.Chats).CollectionChanged += OnChatsChanged;
+            if (CurrentSpace.SpaceNetworker != null)
             {
-                SpaceNetworker? networker = null;
-                serverNetworkers.TryGetValue(currentServer, out networker);
+                audioController.OnWaveDataIn += CurrentSpace.SpaceNetworker.VoipPeer.Send;
+            }
+
+            if (!CurrentSpace.IsLocal)
+            {
+                SpaceNetworker? networker = CurrentSpace.SpaceNetworker;
                 if (networker == null)
                 {
-                    networker = new SpaceNetworker(_context, currentServer);
-                    serverNetworkers.Add(currentServer, networker);
+                    networker = new SpaceNetworker(_context, CurrentSpace, audioController);
                     await networker.JoinSpace();
                 }
 
                 await networker.ControlPeer.SendClient(localClient);
                 await networker.ControlPeer.SendCommand(ControlPeer.Command.GET_CLIENTS);
 
-                Chat? latestChat = currentServer.Chats.MaxBy(c => c.Timestamp);
+                Chat? latestChat = CurrentSpace.Chats.MaxBy(c => c.Timestamp);
                 long latestTime = latestChat == null ? 0 : latestChat.Timestamp;
-                await networker.ControlPeer.SendCommand(ControlPeer.Command.GET_CHATS, null, BitConverter.GetBytes(latestTime));
+                await networker.ControlPeer.SendCommand(ControlPeer.Command.GET_CHATS, BitConverter.GetBytes(latestTime));
             }
         }
 
@@ -233,19 +226,17 @@ namespace Commons
             IList<DataGridCellInfo> selectedCells = e.AddedCells;
             if (selectedCells.Count() != 0)
             {
-                await SetCurrentServer((Space)selectedCells[0].Item);
+                await SetCurrentSpace((Space)selectedCells[0].Item);
             }
         }
 
         private void Invite_Clicked(object sender, EventArgs e)
         {
-            if (currentServer == null) return;
+            if (CurrentSpace == null) return;
 
-            InviteToServerWindow inviteToServerWindow = new InviteToServerWindow();
-            inviteToServerWindow.ServerLink = currentServer.Address + ":" + currentServer.Port;
-            if (inviteToServerWindow.ShowDialog().Equals(true))
-            {
-            }
+            InviteToSpaceWindow inviteToSpaceWindow = new InviteToSpaceWindow();
+            inviteToSpaceWindow.SpaceLink = CurrentSpace.Address + ":" + CurrentSpace.Port;
+            inviteToSpaceWindow.ShowDialog();
         }
     }
 }

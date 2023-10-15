@@ -5,11 +5,11 @@ namespace Commons
     /// <summary>
     /// Interaction logic for AddServerWindow.xaml
     /// </summary>
-    public partial class AddServerWindow : Window
+    public partial class AddSpaceWindow : Window
     {
-        public string ServerName { get; private set; } = "";
+        public string SpaceName { get; private set; } = "";
 
-        public AddServerWindow()
+        public AddSpaceWindow()
         {
             InitializeComponent();
             this.Owner = Application.Current.MainWindow;
@@ -19,7 +19,7 @@ namespace Commons
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            ServerName = serverNameTextBox.Text;
+            SpaceName = serverNameTextBox.Text;
             DialogResult = true;
             this.Close();
         }

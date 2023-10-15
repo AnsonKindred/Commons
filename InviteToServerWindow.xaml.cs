@@ -5,11 +5,11 @@ namespace Commons
     /// <summary>
     /// Interaction logic for InviteToServerWindow.xaml
     /// </summary>
-    public partial class InviteToServerWindow : Window
+    public partial class InviteToSpaceWindow : Window
     {
-        public string ServerLink { set { serverLinkTextBox.Text = value; } }
+        public string SpaceLink { set { serverLinkTextBox.Text = value; } }
 
-        public InviteToServerWindow()
+        public InviteToSpaceWindow()
         {
             InitializeComponent();
             this.Owner = Application.Current.MainWindow;
@@ -19,7 +19,7 @@ namespace Commons
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            ServerLink = serverLinkTextBox.Text;
+            SpaceLink = serverLinkTextBox.Text;
             DialogResult = true;
             this.Close();
         }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Threading.Tasks;
+using NAudio.Wave;
 
 namespace Commons
 {
@@ -15,13 +16,15 @@ namespace Commons
 
         CommonsContext db;
 
-        public SpaceNetworker(CommonsContext db, Space server)
+        public SpaceNetworker(CommonsContext db, Space space, AudioController audioController)
         {
-            this.Space = server;
+            this.Space = space;
             this.db = db;
 
+            space.SpaceNetworker = this;
+
             ControlPeer = new ControlPeer(this, db);
-            VoipPeer = new VoipPeer();
+            VoipPeer = new VoipPeer(audioController);
         }
 
         public async Task HostSpace()
@@ -37,8 +40,8 @@ namespace Commons
 
         public async Task JoinSpace()
         {
-            IPEndPoint serverEndPoint = new IPEndPoint(IPAddress.Parse(Space.Address), Space.Port);
-            await ControlPeer.Connect(serverEndPoint);
+            IPEndPoint spaceEndPoint = new IPEndPoint(IPAddress.Parse(Space.Address), Space.Port);
+            await ControlPeer.Connect(spaceEndPoint);
         }
 
         public void Dispose()

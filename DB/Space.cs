@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Commons
 {
@@ -16,6 +17,9 @@ namespace Commons
 
         public virtual ICollection<Chat> Chats { get; private set; } = new ObservableCollection<Chat>();
         public virtual ICollection<Client> Clients { get; set; } = new ObservableCollection<Client>();
+
+        [NotMapped]
+        internal SpaceNetworker? SpaceNetworker { get; set; }
 
     }
 }

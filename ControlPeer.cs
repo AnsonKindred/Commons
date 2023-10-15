@@ -98,6 +98,62 @@ namespace Commons
             return bytes;
         }
 
+        internal async Task SendChat(Chat chat, TcpClient? tcpClient = null, TcpClient? excludeClient = null)
+        {
+            int length = 16 + sizeof(long) + Encoding.UTF8.GetByteCount(chat.Content);
+            byte[] bytes = new byte[length];
+            chat.Client.Guid.TryWriteBytes(bytes);
+            byte[] timestampBytes = BitConverter.GetBytes(chat.Timestamp);
+            Array.Copy(timestampBytes, 0, bytes, 16, sizeof(long));
+            Encoding.UTF8.GetBytes(chat.Content, 0, chat.Content.Length, bytes, 16 + sizeof(long));
+            await SendCommand(Command.ADD_CHAT, tcpClient, bytes, excludeClient);
+        }
+
+        internal async Task SendClient(Client client, TcpClient? tcpClient = null, TcpClient? excludeClient = null)
+        {
+            int length = 16 + Encoding.UTF8.GetByteCount(client.Name);
+            byte[] bytes = new byte[length];
+            client.Guid.TryWriteBytes(bytes);
+            Encoding.UTF8.GetBytes(client.Name, 0, client.Name.Length, bytes, 16);
+            await SendCommand(Command.ADD_CLIENT, tcpClient, bytes, excludeClient);
+        }
+
+        internal async Task SendCommand(Command command, TcpClient? tcpClient = null, byte[]? payload = null, TcpClient? excludeClient = null)
+        {
+            if (tcpClient == null)
+            {
+                if (listener == null && localClient != null)
+                {
+                    await SendCommandToStream(command, localClient.GetStream(), payload);
+                }
+                else if (listener != null)
+                {
+                    foreach (var client in connectedClients)
+                    {
+                        if (client == excludeClient) continue;
+                        await SendCommandToStream(command, client.GetStream(), payload);
+                    }
+                }
+            }
+            else
+            {
+                await SendCommandToStream(command, tcpClient.GetStream(), payload);
+            }
+        }
+
+        internal async Task SendCommandToStream(Command command, NetworkStream stream, byte[]? payload = null)
+        {
+            await stream.WriteAsync(new byte[] { (byte)command }, 0, 1);
+            int payloadLength = payload?.Length ?? 0;
+            await stream.WriteAsync(BitConverter.GetBytes(payloadLength), 0, sizeof(int));
+            if (payload != null)
+            {
+                await stream.WriteAsync(payload, 0, payload.Length);
+            }
+            Trace.WriteLine("[" + Process.GetCurrentProcess().Id + "] Really sending command " + command);
+        }
+
+        #region Commands
 
         private async Task DoCommand(TcpClient tcpClient, Command command, byte[]? payload)
         {
@@ -166,17 +222,6 @@ namespace Commons
             }
         }
 
-        internal async Task SendChat(Chat chat, TcpClient? tcpClient = null, TcpClient? excludeClient = null)
-        {
-            int length = 16 + sizeof(long) + Encoding.UTF8.GetByteCount(chat.Content);
-            byte[] bytes = new byte[length];
-            chat.Client.Guid.TryWriteBytes(bytes);
-            byte[] timestampBytes = BitConverter.GetBytes(chat.Timestamp);
-            Array.Copy(timestampBytes, 0, bytes, 16, sizeof(long));
-            Encoding.UTF8.GetBytes(chat.Content, 0, chat.Content.Length, bytes, 16 + sizeof(long));
-            await SendCommand(Command.ADD_CHAT, tcpClient, bytes, excludeClient);
-        }
-
         private async Task DoAddChat(TcpClient tcpClient, byte[]? payload)
         {
             if (payload == null) throw new NullReferenceException(nameof(payload));
@@ -206,48 +251,6 @@ namespace Commons
             }
         }
 
-        internal async Task SendClient(Client client, TcpClient? tcpClient = null, TcpClient? excludeClient = null)
-        {
-            int length = 16 + Encoding.UTF8.GetByteCount(client.Name);
-            byte[] bytes = new byte[length];
-            client.Guid.TryWriteBytes(bytes);
-            Encoding.UTF8.GetBytes(client.Name, 0, client.Name.Length, bytes, 16);
-            await SendCommand(Command.ADD_CLIENT, tcpClient, bytes, excludeClient);
-        }
-
-        internal async Task SendCommand(Command command, TcpClient? tcpClient = null, byte[]? payload = null, TcpClient? excludeClient = null)
-        {
-            if (tcpClient == null)
-            {
-                if (listener == null && localClient != null)
-                {
-                    await SendCommandToStream(command, localClient.GetStream(), payload);
-                }
-                else if (listener != null)
-                {
-                    foreach (var client in connectedClients)
-                    {
-                        if (client == excludeClient) continue;
-                        await SendCommandToStream(command, client.GetStream(), payload);
-                    }
-                }
-            }
-            else
-            {
-                await SendCommandToStream(command, tcpClient.GetStream(), payload);
-            }
-        }
-
-        internal async Task SendCommandToStream(Command command, NetworkStream stream, byte[]? payload = null)
-        {
-            await stream.WriteAsync(new byte[] { (byte)command }, 0, 1);
-            int payloadLength = payload?.Length ?? 0;
-            await stream.WriteAsync(BitConverter.GetBytes(payloadLength), 0, sizeof(int));
-            if (payload != null)
-            {
-                await stream.WriteAsync(payload, 0, payload.Length);
-            }
-            Trace.WriteLine("[" + Process.GetCurrentProcess().Id + "] Really sending command " + command);
-        }
+        #endregion Commands
     }
 }

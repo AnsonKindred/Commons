@@ -11,6 +11,8 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using Microsoft.EntityFrameworkCore;
+using NAudio.Wave;
+using NobleConnect;
 
 namespace Commons
 {
@@ -29,10 +31,24 @@ namespace Commons
 
         private Dictionary<Server, ServerNetworker> serverNetworkers = new();
 
+        WaveInEvent waveIn;
+
         public MainWindow()
         {
+            Logger.logger = (s) => Trace.WriteLine(s);
+            Logger.logLevel = Logger.Level.Debug;
+
             InitializeComponent();
             serversViewSource = (CollectionViewSource)FindResource(nameof(serversViewSource));
+
+            waveIn = new WaveInEvent();
+            waveIn.StartRecording();
+            waveIn.DataAvailable += WaveDataIn;
+        }
+
+        void WaveDataIn(object? sender, WaveInEventArgs waveArgs)
+        {
+            //waveArgs.Buffer, 0, waveArgs.BytesRecorded);
         }
 
         protected override void OnClosed(EventArgs e)
@@ -62,7 +78,7 @@ namespace Commons
             foreach (Server server in _context.Servers.Where(s => s.IsLocal))
             {
                 var serverNetworker = new ServerNetworker(_context, server);
-                serverNetworker.StartHosting();
+                await serverNetworker.StartHosting();
                 serverNetworkers.Add(server, serverNetworker);
             }
 
@@ -106,7 +122,7 @@ namespace Commons
             _context.Chats.Add(newChat);
             _context.SaveChanges();
 
-            await serverNetworkers[currentServer].SendChat(newChat);
+            await serverNetworkers[currentServer].ControlPeer.SendChat(newChat);
         }
 
         private void AddChatText(Chat chat)
@@ -138,12 +154,14 @@ namespace Commons
                 Server newServer = new Server { Name = addServerWindow.ServerName, Address = IPAddress.Any.ToString(), Port = 0, IsLocal = true };
                 localClient.Servers.Add(newServer);
                 _context.SaveChanges();
-                await SetCurrentServer(newServer);
 
                 var serverNetworker = new ServerNetworker(_context, newServer);
-                serverNetworker.StartHosting();
-                _context.SaveChanges();
                 serverNetworkers.Add(newServer, serverNetworker);
+                Trace.WriteLine("Made it here");
+                await serverNetworker.StartHosting();
+                Trace.WriteLine("but here?");
+
+                await SetCurrentServer(newServer);
             }
         }
 
@@ -155,7 +173,7 @@ namespace Commons
             if (linkServerWindow.ShowDialog().Equals(true))
             {
                 IPEndPoint endpoint = IPEndPoint.Parse(linkServerWindow.ServerLink);
-                Server newServer = new Server { Name = "????", Address = endpoint.Address.ToString(), Port = endpoint.Port, IsLocal = false };
+                Server newServer = new Server { Name = "Connecting...", Address = endpoint.Address.ToString(), Port = endpoint.Port, IsLocal = false };
                 localClient.Servers.Add(newServer);
                 _context.SaveChanges();
                 await SetCurrentServer(newServer);
@@ -191,12 +209,12 @@ namespace Commons
                     await networker.JoinServer();
                 }
 
-                await networker.SendClient(localClient);
-                await networker.SendCommand(ServerNetworker.Command.GET_CLIENTS);
+                await networker.ControlPeer.SendClient(localClient);
+                await networker.ControlPeer.SendCommand(ControlPeer.Command.GET_CLIENTS);
 
                 Chat? latestChat = currentServer.Chats.MaxBy(c => c.Timestamp);
                 long latestTime = latestChat == null ? 0 : latestChat.Timestamp;
-                await networker.SendCommand(ServerNetworker.Command.GET_CHATS, null, BitConverter.GetBytes(latestTime));
+                await networker.ControlPeer.SendCommand(ControlPeer.Command.GET_CHATS, null, BitConverter.GetBytes(latestTime));
             }
         }
 

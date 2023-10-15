@@ -9,6 +9,6 @@
         public required long Timestamp { get; set; }
 
         public virtual required Client Client { get; set; }
-        public virtual required Server Server { get; set; }
+        public virtual required Space Server { get; set; }
     }
 }

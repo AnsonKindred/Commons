@@ -6,38 +6,38 @@ using System.Threading.Tasks;
 
 namespace Commons
 {
-    class ServerNetworker
+    class SpaceNetworker
     {
-        public Server Server { get; private set; }
+        public Space Space { get; private set; }
 
         public ControlPeer ControlPeer { get; private set; }
         public VoipPeer VoipPeer { get; private set; }
 
         CommonsContext db;
 
-        public ServerNetworker(CommonsContext db, Server server)
+        public SpaceNetworker(CommonsContext db, Space server)
         {
-            this.Server = server;
+            this.Space = server;
             this.db = db;
 
             ControlPeer = new ControlPeer(this, db);
             VoipPeer = new VoipPeer();
         }
 
-        public async Task StartHosting()
+        public async Task HostSpace()
         {
             await VoipPeer.StartHosting();
             await ControlPeer.StartHosting();
 
-            Server.Address = ControlPeer.NobleEndPoint.Address.ToString();
-            Server.Port = ControlPeer.NobleEndPoint.Port;
+            Space.Address = ControlPeer.NobleEndPoint.Address.ToString();
+            Space.Port = ControlPeer.NobleEndPoint.Port;
 
             db.SaveChanges();
         }
 
-        public async Task JoinServer()
+        public async Task JoinSpace()
         {
-            IPEndPoint serverEndPoint = new IPEndPoint(IPAddress.Parse(Server.Address), Server.Port);
+            IPEndPoint serverEndPoint = new IPEndPoint(IPAddress.Parse(Space.Address), Space.Port);
             await ControlPeer.Connect(serverEndPoint);
         }
 

@@ -3,7 +3,7 @@ using System.Collections.ObjectModel;
 
 namespace Commons
 {
-    public class Server : NotifyPropertiesModel
+    public class Space : NotifyPropertiesModel
     {
         public int ID { get; set; }
 

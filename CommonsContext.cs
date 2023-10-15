@@ -6,7 +6,7 @@ namespace Commons
     {
         public DbSet<Chat> Chats { get; set; }
         public DbSet<Client> Clients { get; set; }
-        public DbSet<Server> Servers { get; set; }
+        public DbSet<Space> Servers { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

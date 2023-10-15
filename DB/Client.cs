@@ -13,7 +13,7 @@ namespace Commons
 
         public required Guid Guid { get; set; }
 
-        public virtual ICollection<Server> Servers { get; set; } = new ObservableCollection<Server>();
+        public virtual ICollection<Space> Servers { get; set; } = new ObservableCollection<Space>();
         public virtual ICollection<Chat> Chats { get; private set; } = new ObservableCollection<Chat>();
     }
 }

@@ -22,11 +22,11 @@ namespace Commons
             CONNECT_TO_VOIP = 6
         }
 
-        ServerNetworker serverNetworker;
-        Server server => serverNetworker.Server;
+        SpaceNetworker serverNetworker;
+        Space server => serverNetworker.Space;
         CommonsContext db;
 
-        internal ControlPeer(ServerNetworker serverNetworker, CommonsContext db) : base() 
+        internal ControlPeer(SpaceNetworker serverNetworker, CommonsContext db) : base() 
         {
             this.serverNetworker = serverNetworker;
             this.db = db;

@@ -24,12 +24,12 @@ namespace Commons
         private readonly CommonsContext _context = new CommonsContext();
 
         private Client? localClient;
-        private Server? currentServer;
+        private Space? currentServer;
         private CollectionViewSource serversViewSource;
 
         public static DataGrid? TheServerList;
 
-        private Dictionary<Server, ServerNetworker> serverNetworkers = new();
+        private Dictionary<Space, SpaceNetworker> serverNetworkers = new();
 
         WaveInEvent waveIn;
 
@@ -75,10 +75,10 @@ namespace Commons
             // Set server list data source so it pulls from the Servers table
             serversViewSource.Source = _context.Servers.Local.ToObservableCollection();
 
-            foreach (Server server in _context.Servers.Where(s => s.IsLocal))
+            foreach (Space server in _context.Servers.Where(s => s.IsLocal))
             {
-                var serverNetworker = new ServerNetworker(_context, server);
-                await serverNetworker.StartHosting();
+                var serverNetworker = new SpaceNetworker(_context, server);
+                await serverNetworker.HostSpace();
                 serverNetworkers.Add(server, serverNetworker);
             }
 
@@ -151,15 +151,13 @@ namespace Commons
             AddServerWindow addServerWindow = new AddServerWindow();
             if (addServerWindow.ShowDialog().Equals(true))
             {
-                Server newServer = new Server { Name = addServerWindow.ServerName, Address = IPAddress.Any.ToString(), Port = 0, IsLocal = true };
+                Space newServer = new Space { Name = addServerWindow.ServerName, Address = IPAddress.Any.ToString(), Port = 0, IsLocal = true };
                 localClient.Servers.Add(newServer);
                 _context.SaveChanges();
 
-                var serverNetworker = new ServerNetworker(_context, newServer);
+                var serverNetworker = new SpaceNetworker(_context, newServer);
                 serverNetworkers.Add(newServer, serverNetworker);
-                Trace.WriteLine("Made it here");
-                await serverNetworker.StartHosting();
-                Trace.WriteLine("but here?");
+                await serverNetworker.HostSpace();
 
                 await SetCurrentServer(newServer);
             }
@@ -173,14 +171,14 @@ namespace Commons
             if (linkServerWindow.ShowDialog().Equals(true))
             {
                 IPEndPoint endpoint = IPEndPoint.Parse(linkServerWindow.ServerLink);
-                Server newServer = new Server { Name = "Connecting...", Address = endpoint.Address.ToString(), Port = endpoint.Port, IsLocal = false };
+                Space newServer = new Space { Name = "Connecting...", Address = endpoint.Address.ToString(), Port = endpoint.Port, IsLocal = false };
                 localClient.Servers.Add(newServer);
                 _context.SaveChanges();
                 await SetCurrentServer(newServer);
             }
         }
 
-        private async Task SetCurrentServer(Server server)
+        private async Task SetCurrentServer(Space server)
         {
             if (localClient == null) return;
 
@@ -200,13 +198,13 @@ namespace Commons
 
             if (!currentServer.IsLocal)
             {
-                ServerNetworker? networker = null;
+                SpaceNetworker? networker = null;
                 serverNetworkers.TryGetValue(currentServer, out networker);
                 if (networker == null)
                 {
-                    networker = new ServerNetworker(_context, currentServer);
+                    networker = new SpaceNetworker(_context, currentServer);
                     serverNetworkers.Add(currentServer, networker);
-                    await networker.JoinServer();
+                    await networker.JoinSpace();
                 }
 
                 await networker.ControlPeer.SendClient(localClient);
@@ -235,7 +233,7 @@ namespace Commons
             IList<DataGridCellInfo> selectedCells = e.AddedCells;
             if (selectedCells.Count() != 0)
             {
-                await SetCurrentServer((Server)selectedCells[0].Item);
+                await SetCurrentServer((Space)selectedCells[0].Item);
             }
         }
 

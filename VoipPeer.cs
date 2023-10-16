@@ -6,8 +6,6 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
-using NAudio;
-using NAudio.Wave;
 using NobleConnect.Ice;
 
 namespace Commons
@@ -45,9 +43,18 @@ namespace Commons
 
         internal void Send(ArraySegment<byte> data)
         {
-            if (localClient == null || !localClient.Connected || localClientStream == null || !localClientStream.CanWrite) return;
+            if (localClient != null && localClient.Connected && localClientStream != null && !localClientStream.CanWrite)
+            {
+                localClientStream.WriteAsync(data);
+            }
 
-            localClientStream.WriteAsync(data);
+            if (connectedClients.Count > 0)
+            {
+                foreach (var client in connectedClients)
+                {
+                    client.GetStream().WriteAsync(data);
+                }
+            }
         }
     }
 }

@@ -8,11 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Interop;
-using NAudio.Dmo.Effect;
 using Un4seen.Bass;
-using Un4seen.Bass.AddOn.Enc;
-using Un4seen.Bass.AddOn.Fx;
-using Un4seen.Bass.AddOn.Wma;
 using Un4seen.Bass.Misc;
 
 namespace Commons
@@ -29,7 +25,7 @@ namespace Commons
 
         private BASSBuffer monBuffer = new BASSBuffer(2f, 44100, 1, 16); // 44.1kHz, 16-bit, mono (like we record!)
         private RECORDPROC _myRecProc;
-        private ENCODEPROC _myEncProc;
+        //private ENCODEPROC _myEncProc;
         private int _recHandle = 0;
         private STREAMPROC? monProc = null;
         private int monStream = 0;
@@ -55,10 +51,10 @@ namespace Commons
                 Trace.WriteLine("Bass_Init error!");
             }
 
-            pluginSpx = Bass.BASS_PluginLoad("bassopus.dll");
-            pluginOpus = Bass.BASS_PluginLoad("bassenc_opus.dll");
-            pluginFX = Bass.BASS_PluginLoad("bass_fx.dll");
-            pluginFX = Bass.BASS_PluginLoad("bass_ac3.dll");
+            //pluginSpx = Bass.BASS_PluginLoad("bassopus.dll");
+            //pluginOpus = Bass.BASS_PluginLoad("bassenc_opus.dll");
+            //pluginFX = Bass.BASS_PluginLoad("bass_fx.dll");
+            //pluginFX = Bass.BASS_PluginLoad("bass_ac3.dll");
 
             // init your recording device (we use the default device)
             if (!Bass.BASS_RecordInit(-1))

@@ -14,7 +14,7 @@ namespace Commons
 
     internal abstract class Peer
     {
-        const string GAME_ID = "NjZLCnplYndpdGhwbGFuQG5vYmxld2hhbGUuY29tCjhRTll4Z2VnS2ZyMDh5ZFI4S1V1dzVNOXVxYm53WkZWeVpyWG04dStNbFJLcW1acVByRCtoZHAzTmJ5ODVBYkRpNURBQiszTlBDa1BxdmR0V3dOQjNRPT0=";
+        const string GAME_ID = "MTAKemViQG5vYmxld2hhbGUuY29tCiFjW3JyM3NSb21jXi54ViU8VGlEXFZ0bjlFeDMwWjFE";
 
         protected TcpListener? listener;
         protected TcpClient? localClient;
@@ -45,7 +45,7 @@ namespace Commons
             config.password = parts[2];
             config.bufferSize = bufferSize;
             config.forceRelayOnly = true;
-            config.iceServerAddress = "us-east.connect.noblewhale.com";
+            config.iceServerAddress = "159.203.136.135";// us -east.connect.noblewhale.com";
             config.icePort = 3478;
             config.protocolType = ProtocolType.Tcp;
 

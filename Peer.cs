@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
@@ -29,9 +30,12 @@ namespace Commons
 
         // Use this to be notified when a client connects
         internal event Action<TcpClient>? ClientConnected;
+        protected int bufferSize;
 
-        internal Peer()
+        internal Peer(int bufferSize)
         {
+            this.bufferSize = bufferSize;
+
             string decodedGameID = Encoding.UTF8.GetString(Convert.FromBase64String(GAME_ID));
             string[] parts = decodedGameID.Split('\n');
 
@@ -39,7 +43,8 @@ namespace Commons
             config.origin = parts[0];
             config.username = parts[1];
             config.password = parts[2];
-            config.bufferSize = 44100;
+            config.bufferSize = bufferSize;
+            config.forceRelayOnly = true;
             config.iceServerAddress = "us-east.connect.noblewhale.com";
             config.icePort = 3478;
             config.protocolType = ProtocolType.Tcp;

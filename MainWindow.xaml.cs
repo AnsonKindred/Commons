@@ -31,7 +31,7 @@ namespace Commons
         public MainWindow()
         {
             Logger.logger = (s) => Trace.WriteLine(s);
-            Logger.logLevel = Logger.Level.Debug;
+            Logger.logLevel = Logger.Level.Developer;
 
             InitializeComponent();
             spacesViewSource = (CollectionViewSource)FindResource(nameof(spacesViewSource));

@@ -26,7 +26,7 @@ namespace Commons
         Space space => spaceNetworker.Space;
         CommonsContext db;
 
-        internal ControlPeer(SpaceNetworker spaceNetworker, CommonsContext db) : base() 
+        internal ControlPeer(SpaceNetworker spaceNetworker, CommonsContext db) : base(1024) 
         {
             this.spaceNetworker = spaceNetworker;
             this.db = db;
@@ -204,7 +204,7 @@ namespace Commons
             else
             {
                 throw new Exception("Bad voip endpoint");
-            }    
+            }
 
             IPEndPoint voipEndPoint = new IPEndPoint(voipAddress, voipPort);
 

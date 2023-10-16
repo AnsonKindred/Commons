@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using NAudio;
 using NAudio.Wave;
+using NobleConnect.Ice;
 
 namespace Commons
 {
@@ -15,8 +16,8 @@ namespace Commons
     {
         private AudioController audioController;
 
-        public VoipPeer(AudioController audioController) 
-        { 
+        public VoipPeer(AudioController audioController) : base(443)
+        {
             this.audioController = audioController;
         }
 
@@ -31,7 +32,7 @@ namespace Commons
                 while (client.Connected)
                 {
                     // Read the byte that represents the audio
-                    byte[] audio = new byte[441];
+                    byte[] audio = new byte[bufferSize];
                     int numBytesRead = await stream.ReadAsync(audio, 0, audio.Length);
                     audioController.AddAudioSamples(audio, numBytesRead);
                 }

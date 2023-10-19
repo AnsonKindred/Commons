@@ -4,11 +4,9 @@ using Un4seen.Bass;
 
 namespace Commons.Audio
 {
-    public delegate bool PacketSource(out ArraySegment<byte> packet);
-
     internal class OpusDecoder
     {
-        IntPtr opusDecoder;
+        nint opusDecoder;
         int frameSize;
 
         public STREAMPROC StreamProcess { get; private set; }
@@ -20,7 +18,7 @@ namespace Commons.Audio
             StreamProcess = new STREAMPROC(Stream);
         }
 
-        unsafe int Stream(int handle, IntPtr buffer, int numDesiredBytes, IntPtr user)
+        unsafe int Stream(int handle, nint buffer, int numDesiredBytes, nint user)
         {
             int totalPCMBytesProcessed = 0;
             while (totalPCMBytesProcessed < numDesiredBytes)

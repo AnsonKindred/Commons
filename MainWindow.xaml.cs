@@ -11,6 +11,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Media.Animation;
+using Commons.Audio;
 using Microsoft.EntityFrameworkCore;
 using NobleConnect;
 
@@ -26,16 +27,16 @@ namespace Commons
         private Client? localClient;
         internal Space? CurrentSpace { get; private set; }
         private CollectionViewSource spacesViewSource;
-        private AudioController audioController;
 
         public MainWindow()
         {
             Logger.logger = (s) => Trace.WriteLine(s);
             Logger.logLevel = Logger.Level.Developer;
 
+            AudioController.Init();
+
             InitializeComponent();
             spacesViewSource = (CollectionViewSource)FindResource(nameof(spacesViewSource));
-            audioController = new AudioController();
         }
 
         protected override void OnClosed(EventArgs e)
@@ -65,7 +66,7 @@ namespace Commons
 
             foreach (Space space in _context.Spaces.Where(s => s.IsLocal))
             {
-                var spaceNetworker = new SpaceNetworker(_context, space, audioController);
+                var spaceNetworker = new SpaceNetworker(_context, space);
                 await spaceNetworker.HostSpace();
             }
 
@@ -143,7 +144,7 @@ namespace Commons
                 localClient.Spaces.Add(newSpace);
                 _context.SaveChanges();
 
-                var spaceNetworker = new SpaceNetworker(_context, newSpace, audioController);
+                var spaceNetworker = new SpaceNetworker(_context, newSpace);
                 await spaceNetworker.HostSpace();
 
                 await SetCurrentSpace(newSpace);
@@ -175,7 +176,7 @@ namespace Commons
                 ((ObservableCollection<Chat>)CurrentSpace.Chats).CollectionChanged -= OnChatsChanged;
                 if (CurrentSpace.SpaceNetworker != null)
                 {
-                    audioController.OnWaveDataIn -= CurrentSpace.SpaceNetworker.VoipPeer.Send;
+                    AudioController.OnWaveDataIn -= CurrentSpace.SpaceNetworker.VoipPeer.Send;
                 }
             }
             chatWindow.Document.Blocks.Clear();
@@ -188,7 +189,7 @@ namespace Commons
             ((ObservableCollection<Chat>)CurrentSpace.Chats).CollectionChanged += OnChatsChanged;
             if (CurrentSpace.SpaceNetworker != null)
             {
-                audioController.OnWaveDataIn += CurrentSpace.SpaceNetworker.VoipPeer.Send;
+                AudioController.OnWaveDataIn += CurrentSpace.SpaceNetworker.VoipPeer.Send;
             }
 
             if (!CurrentSpace.IsLocal)
@@ -196,7 +197,7 @@ namespace Commons
                 SpaceNetworker? networker = CurrentSpace.SpaceNetworker;
                 if (networker == null)
                 {
-                    networker = new SpaceNetworker(_context, CurrentSpace, audioController);
+                    networker = new SpaceNetworker(_context, CurrentSpace);
                     await networker.JoinSpace();
                 }
 

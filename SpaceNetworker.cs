@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Threading.Tasks;
+using Commons.Audio;
 
 namespace Commons
 {
@@ -15,7 +16,7 @@ namespace Commons
 
         CommonsContext db;
 
-        public SpaceNetworker(CommonsContext db, Space space, AudioController audioController)
+        public SpaceNetworker(CommonsContext db, Space space)
         {
             this.Space = space;
             this.db = db;
@@ -23,7 +24,7 @@ namespace Commons
             space.SpaceNetworker = this;
 
             ControlPeer = new ControlPeer(this, db);
-            VoipPeer = new VoipPeer(audioController);
+            VoipPeer = new VoipPeer();
         }
 
         public async Task HostSpace()

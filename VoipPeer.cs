@@ -6,17 +6,15 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using Commons.Audio;
 using NobleConnect.Ice;
 
 namespace Commons
 {
     internal class VoipPeer : Peer
     {
-        private AudioController audioController;
-
-        public VoipPeer(AudioController audioController) : base(445)
+        public VoipPeer() : base(445)
         {
-            this.audioController = audioController;
         }
 
         protected override async void ReceiveFromClient(TcpClient client)
@@ -32,7 +30,7 @@ namespace Commons
                     // Read the byte that represents the audio
                     byte[] audio = new byte[bufferSize];
                     int numBytesRead = await stream.ReadAsync(audio, 0, audio.Length);
-                    audioController.AddAudioSamples(audio, numBytesRead);
+                    AudioController.AddAudioSamples(audio, numBytesRead);
                 }
             }
             catch (ObjectDisposedException) { }

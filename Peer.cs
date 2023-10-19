@@ -19,7 +19,7 @@ namespace Commons
         protected TcpListener? listener;
         protected TcpClient? localClient;
         protected NetworkStream? localClientStream => localClient?.GetStream();
-        protected List<TcpClient> connectedClients = new();
+        protected List<NetworkStream> connectedClients = new();
         protected NobleConnect.Peer noblePeer;
 
         internal IPEndPoint NobleEndPoint => noblePeer.RelayEndPoint;
@@ -29,7 +29,7 @@ namespace Commons
         protected bool isRunning = true;
 
         // Use this to be notified when a client connects
-        internal event Action<TcpClient>? ClientConnected;
+        internal event Action<NetworkStream>? ClientConnected;
         protected int bufferSize;
 
         internal Peer(int bufferSize)
@@ -91,12 +91,13 @@ namespace Commons
 
         private async Task _OnClientConnected(TcpClient client)
         {
-            connectedClients.Add(client);
-            await OnClientConnected(client);
-            ClientConnected?.Invoke(client);
+            NetworkStream stream = client.GetStream();
+            connectedClients.Add(stream);
+            await OnClientConnected(stream);
+            ClientConnected?.Invoke(stream);
         }
 
-        internal virtual async Task OnClientConnected(TcpClient client)
+        internal virtual async Task OnClientConnected(NetworkStream client)
         {
             // Child classes can override this or other classes can use the ClientConnected event
         }

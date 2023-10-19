@@ -14,7 +14,7 @@ namespace Commons
     {
         private AudioController audioController;
 
-        public VoipPeer(AudioController audioController) : base(443)
+        public VoipPeer(AudioController audioController) : base(445)
         {
             this.audioController = audioController;
         }
@@ -38,12 +38,12 @@ namespace Commons
             catch (ObjectDisposedException) { }
             catch (IOException) { }
 
-            connectedClients.Remove(client);
+            connectedClients.Remove(client.GetStream());
         }
 
         internal void Send(ArraySegment<byte> data)
         {
-            if (localClient != null && localClient.Connected && localClientStream != null && !localClientStream.CanWrite)
+            if (localClientStream != null && localClientStream.CanWrite) 
             {
                 localClientStream.WriteAsync(data);
             }
@@ -52,7 +52,10 @@ namespace Commons
             {
                 foreach (var client in connectedClients)
                 {
-                    client.GetStream().WriteAsync(data);
+                    if (client != null && client.CanWrite)
+                    {
+                        client.WriteAsync(data);
+                    }
                 }
             }
         }

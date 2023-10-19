@@ -32,12 +32,12 @@ namespace Commons
             this.db = db;
         }
 
-        internal override async Task OnClientConnected(TcpClient client)
+        internal override async Task OnClientConnected(NetworkStream client)
         {
             await SendSpace(client);
         }
 
-        async Task SendSpace(TcpClient client)
+        async Task SendSpace(NetworkStream client)
         {
             Trace.WriteLine("Send space: " + space.Name);
             byte[] payload = Encoding.UTF8.GetBytes(space.Name);
@@ -57,10 +57,12 @@ namespace Commons
 
         protected override async void ReceiveFromClient(TcpClient client)
         {
+            NetworkStream? stream = null;
+
             try
             {
                 // Get a stream object for reading and writing
-                NetworkStream stream = client.GetStream();
+                stream = client.GetStream();
 
                 // Loop to receive all the data sent by the client.
                 while (client.Connected)
@@ -85,13 +87,16 @@ namespace Commons
                         if (payloadBytes == null) break;
                     }
 
-                    await DoCommand(client, (Command)commandByte[0], payloadBytes);
+                    await DoCommand(stream, (Command)commandByte[0], payloadBytes);
                 }
             }
             catch (ObjectDisposedException) { }
             catch (IOException) { }
 
-            connectedClients.Remove(client);
+            if (stream != null)
+            {
+                connectedClients.Remove(stream);
+            }
         }
 
         // Receive a specific length of bytes from a network stream, even if it takes multiple reads.
@@ -109,7 +114,7 @@ namespace Commons
             return bytes;
         }
 
-        internal async Task SendChat(Chat chat, TcpClient? tcpClient = null, TcpClient? excludeClient = null)
+        internal async Task SendChat(Chat chat, NetworkStream? tcpClient = null, NetworkStream? excludeClient = null)
         {
             int length = 16 + sizeof(long) + Encoding.UTF8.GetByteCount(chat.Content);
             byte[] bytes = new byte[length];
@@ -120,7 +125,7 @@ namespace Commons
             await SendCommand(Command.ADD_CHAT, bytes, tcpClient, excludeClient);
         }
 
-        internal async Task SendClient(Client client, TcpClient? tcpClient = null, TcpClient? excludeClient = null)
+        internal async Task SendClient(Client client, NetworkStream? tcpClient = null, NetworkStream? excludeClient = null)
         {
             int length = 16 + Encoding.UTF8.GetByteCount(client.Name);
             byte[] bytes = new byte[length];
@@ -129,12 +134,12 @@ namespace Commons
             await SendCommand(Command.ADD_CLIENT, bytes, tcpClient, excludeClient);
         }
 
-        internal async Task SendCommand(Command command, TcpClient? tcpClient = null, TcpClient? excludeClient = null)
+        internal async Task SendCommand(Command command, NetworkStream? tcpClient = null, NetworkStream? excludeClient = null)
         {
             await SendCommand(command, new ArraySegment<byte>(), tcpClient, excludeClient);
         }
 
-        internal async Task SendCommand(Command command, ArraySegment<byte> payload, TcpClient? tcpClient = null, TcpClient? excludeClient = null)
+        internal async Task SendCommand(Command command, ArraySegment<byte> payload, NetworkStream? tcpClient = null, NetworkStream? excludeClient = null)
         {
             if (tcpClient == null)
             {
@@ -147,13 +152,13 @@ namespace Commons
                     foreach (var client in connectedClients)
                     {
                         if (client == excludeClient) continue;
-                        await SendCommandToStream(command, client.GetStream(), payload);
+                        await SendCommandToStream(command, client, payload);
                     }
                 }
             }
             else
             {
-                await SendCommandToStream(command, tcpClient.GetStream(), payload);
+                await SendCommandToStream(command, tcpClient, payload);
             }
         }
 
@@ -170,7 +175,7 @@ namespace Commons
 
         #region Commands
 
-        private async Task DoCommand(TcpClient tcpClient, Command command, byte[]? payload)
+        private async Task DoCommand(NetworkStream tcpClient, Command command, byte[]? payload)
         {
             Trace.WriteLine("[" + Process.GetCurrentProcess().Id + "] Doing command " + command);
             switch (command)
@@ -220,7 +225,7 @@ namespace Commons
             db.SaveChanges();
         }
 
-        private async Task DoGetClients(TcpClient tcpClient)
+        private async Task DoGetClients(NetworkStream tcpClient)
         {
             Trace.WriteLine("Sending clients");
             foreach (Client client in space.Clients)
@@ -250,7 +255,7 @@ namespace Commons
             db.SaveChanges();
         }
 
-        private async Task DoGetChats(TcpClient client, byte[]? payload)
+        private async Task DoGetChats(NetworkStream client, byte[]? payload)
         {
             long timestamp = BitConverter.ToInt64(payload);
             var chats = space.Chats.Where(c => c.Timestamp > timestamp);
@@ -260,7 +265,7 @@ namespace Commons
             }
         }
 
-        private async Task DoAddChat(TcpClient tcpClient, byte[]? payload)
+        private async Task DoAddChat(NetworkStream tcpClient, byte[]? payload)
         {
             if (payload == null) throw new NullReferenceException(nameof(payload));
 

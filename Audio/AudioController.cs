@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Runtime.InteropServices;
 using Un4seen.Bass;
 using Un4seen.Bass.AddOn.Fx;
-using Un4seen.Bass.AddOn.Sfx;
 
 namespace Commons.Audio
 {
@@ -35,6 +33,7 @@ namespace Commons.Audio
         {
             opusEncoder = new OpusEncoder();
             opusDecoder = new OpusDecoder();
+            compressorSettings = new BASS_BFX_COMPRESSOR2(-2.5f, -24, 2, .02f, 20, BASSFXChan.BASS_BFX_CHANALL);
         }
 
         public static void Init()
@@ -74,14 +73,7 @@ namespace Commons.Audio
         {
             micInputChannel = Bass.BASS_RecordStart(SAMPLE_RATE, NUM_CHANNELS, BASSFlag.BASS_DEFAULT, 10, opusEncoder.RecordingProcess, nint.Zero);
             fxCompressorHandle = Bass.BASS_ChannelSetFX(micInputChannel, BASSFXType.BASS_FX_BFX_COMPRESSOR2, 0);
-            Trace.WriteLine("bad fx: " + Bass.BASS_ErrorGetCode());
-            compressorSettings = new BASS_BFX_COMPRESSOR2(-2.5f, -24, 2, .02f, 20, BASSFXChan.BASS_BFX_CHANALL);
-            
-            bool worked = Bass.BASS_FXSetParameters(fxCompressorHandle, compressorSettings);
-            if (!worked)
-            {
-                Trace.WriteLine(Bass.BASS_ErrorGetCode());
-            }
+            Bass.BASS_FXSetParameters(fxCompressorHandle, compressorSettings);
         }
 
         private static void StartSpeakerOutput()

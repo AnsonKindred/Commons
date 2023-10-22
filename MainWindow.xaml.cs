@@ -174,10 +174,6 @@ namespace Commons
             if (CurrentSpace != null)
             {
                 ((ObservableCollection<Chat>)CurrentSpace.Chats).CollectionChanged -= OnChatsChanged;
-                if (CurrentSpace.SpaceNetworker != null)
-                {
-                    AudioController.OnWaveDataIn -= CurrentSpace.SpaceNetworker.VoipPeer.Send;
-                }
             }
             chatWindow.Document.Blocks.Clear();
             CurrentSpace = space;
@@ -187,10 +183,6 @@ namespace Commons
             }
 
             ((ObservableCollection<Chat>)CurrentSpace.Chats).CollectionChanged += OnChatsChanged;
-            if (CurrentSpace.SpaceNetworker != null)
-            {
-                AudioController.OnWaveDataIn += CurrentSpace.SpaceNetworker.VoipPeer.Send;
-            }
 
             if (!CurrentSpace.IsLocal)
             {
@@ -207,6 +199,11 @@ namespace Commons
                 Chat? latestChat = CurrentSpace.Chats.MaxBy(c => c.Timestamp);
                 long latestTime = latestChat == null ? 0 : latestChat.Timestamp;
                 await networker.ControlPeer.SendCommand(ControlPeer.Command.GET_CHATS, BitConverter.GetBytes(latestTime));
+            }
+
+            if (CurrentSpace.SpaceNetworker != null)
+            {
+                AudioController.SetVoipPeer(CurrentSpace.SpaceNetworker.VoipPeer);
             }
         }
 

@@ -6,9 +6,18 @@
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Platforms>AnyCPU;x64;x86</Platforms>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <Optimize>False</Optimize>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
+    <Optimize>False</Optimize>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Optimize>False</Optimize>
   </PropertyGroup>
 
@@ -30,9 +39,6 @@
     <Reference Include="Noble Connect .NET">
       <HintPath>..\Noble Connect\Noble Connect DLL\Noble Connect .NET\bin\Debug\net7.0-windows\Noble Connect .NET.dll</HintPath>
       <Private>True</Private>
-    </Reference>
-    <Reference Include="OpusWrapper">
-      <HintPath>..\..\Downloads\Opus.NET-master\OpusWrapper\bin\Debug\OpusWrapper.dll</HintPath>
     </Reference>
   </ItemGroup>
 
@@ -67,6 +73,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="bass_fx.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="opus.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

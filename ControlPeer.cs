@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 
 namespace Commons
 {
+    using IPTuple = Tuple<IPEndPoint, IPEndPoint>;
+
     internal class ControlPeer : Peer
     {
         internal enum Command : byte
@@ -22,19 +24,73 @@ namespace Commons
             CONNECT_TO_VOIP = 6
         }
 
+        protected TcpListener? listener;
+        protected TcpClient? localClient;
+        protected NetworkStream? localClientStream => localClient?.GetStream();
+        protected List<NetworkStream> connectedClients = new();
+
+        public bool IsConnected => localClient?.Connected ?? false;
+
+        // Use this to be notified when a client connects
+        protected event Action<NetworkStream>? ClientConnected;
+
         SpaceNetworker spaceNetworker;
         Space space => spaceNetworker.Space;
         CommonsContext db;
 
-        internal ControlPeer(SpaceNetworker spaceNetworker, CommonsContext db) : base(1024) 
+        internal ControlPeer(SpaceNetworker spaceNetworker, CommonsContext db) : base(1024, ProtocolType.Tcp) 
         {
             this.spaceNetworker = spaceNetworker;
             this.db = db;
         }
 
-        internal override async Task OnClientConnected(NetworkStream client)
+        internal override async Task<IPEndPoint> StartHosting(IPEndPoint localEndPoint)
+        {
+            listener = new TcpListener(localEndPoint.Address, localEndPoint.Port);
+            listener.Start();
+            localEndPoint = (IPEndPoint)listener.LocalEndpoint;
+
+            AcceptClients();
+
+            return await base.StartHosting(localEndPoint);
+        }
+
+        internal virtual async void AcceptClients()
+        {
+            if (listener == null) return;
+
+            while (isRunning)
+            {
+                TcpClient client = await listener.AcceptTcpClientAsync();
+                await _OnClientConnected(client);
+                ReceiveFromClient(client);
+            }
+        }
+
+        private async Task _OnClientConnected(TcpClient client)
+        {
+            NetworkStream stream = client.GetStream();
+            connectedClients.Add(stream);
+            await OnClientConnected(stream);
+            ClientConnected?.Invoke(stream);
+        }
+
+        internal async Task OnClientConnected(NetworkStream client)
         {
             await SendSpace(client);
+        }
+
+        internal override async Task<IPTuple?> Connect(IPEndPoint remoteEndPoint)
+        {
+            localClient = new TcpClient(new IPEndPoint(IPAddress.Any, 0));
+            IPTuple? bridgeEndPoints = await base.Connect(remoteEndPoint);
+            if (bridgeEndPoints != null)
+            {
+                localClient.Connect(bridgeEndPoints.Item1);
+                ReceiveFromClient(localClient);
+            }
+
+            return bridgeEndPoints;
         }
 
         async Task SendSpace(NetworkStream client)
@@ -55,7 +111,7 @@ namespace Commons
             await SendCommand(Command.CONNECT_TO_VOIP, realPayload, client);
         }
 
-        protected override async void ReceiveFromClient(TcpClient client)
+        protected async void ReceiveFromClient(TcpClient client)
         {
             NetworkStream? stream = null;
 

@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using Microsoft.EntityFrameworkCore;
 
 namespace Commons
 {
@@ -10,7 +11,7 @@ namespace Commons
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseLazyLoadingProxies().UseSqlite("Data Source=commons.db");
+            optionsBuilder.UseLazyLoadingProxies().UseSqlite("Data Source=commons-" + DateTime.Now.Ticks + ".db");
         }
     }
 }

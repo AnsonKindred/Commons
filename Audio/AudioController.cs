@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Un4seen.Bass;
 using Un4seen.Bass.AddOn.Fx;
@@ -18,16 +17,20 @@ namespace Commons.Audio
         static OpusEncoder opusEncoder;
         static OpusDecoder opusDecoder;
 
-        // Shared buffer because right now I'm just echoing the mic back out, eventually these will be separate buffers or go straight to a socket or something
-        static byte[] backingBuffer = new byte[SAMPLE_RATE * NUM_CHANNELS * sizeof(short)];
-        static int backingBufferWriteIndex;
-        static Queue<ArraySegment<byte>> fakeUDPBuffer = new Queue<ArraySegment<byte>>();
-        static object fakeUDPSharedBufferLock = new object();
+        //static UnmanagedMemoryManager<byte>? memoryManager;
+        static public byte[] managedBuffer = new byte[SAMPLE_RATE * NUM_CHANNELS * sizeof(short)];
+        static public int managedBufferWriteIndex = 0;
 
-        public static event Action<ArraySegment<byte>>? OnWaveDataIn;
+        static Queue<ArraySegment<byte>> packetBuffer = new Queue<ArraySegment<byte>>();
+        static object packetBufferLock = new object();
+
         static int pluginFX;
         static int fxCompressorHandle;
         static BASS_BFX_COMPRESSOR2 compressorSettings;
+
+        static VoipPeer? voipPeer;
+
+        const int MIC_BUFFER_MS = 10;
 
         static AudioController()
         {
@@ -47,31 +50,38 @@ namespace Commons.Audio
             StartSpeakerOutput();
         }
 
-        public static void DoSomethingWithEncodedDataFromMic(nint packet, int packetLength)
+        unsafe public static void DoSomethingWithEncodedDataFromMic(nint packet, int packetLength)
         {
-            lock (fakeUDPSharedBufferLock)
+            if (voipPeer != null)
             {
-                if (backingBufferWriteIndex + packetLength > backingBuffer.Length)
+                if (managedBufferWriteIndex + packetLength > managedBuffer.Length)
                 {
-                    backingBufferWriteIndex = 0;
+                    managedBufferWriteIndex = 0;
                 }
-                Marshal.Copy(packet, backingBuffer, backingBufferWriteIndex, packetLength);
-                fakeUDPBuffer.Enqueue(new ArraySegment<byte>(backingBuffer, backingBufferWriteIndex, packetLength));
-                backingBufferWriteIndex += packetLength;
+                Marshal.Copy(packet, managedBuffer, managedBufferWriteIndex, packetLength);
+                
+                voipPeer.Send(new ArraySegment<byte>(managedBuffer, managedBufferWriteIndex, packetLength));
+                managedBufferWriteIndex += packetLength;
+                //if (memoryManager == null)
+                //{
+                //    // This is almost certainly illegal and wrong
+                //    memoryManager = new UnmanagedMemoryManager<byte>((byte*)packet, MIC_BUFFER_MS * SAMPLE_RATE * sizeof(short) / 1000);
+                //}
+                //voipPeer.Send(memoryManager.Memory.Slice((int)((byte*)packet - memoryManager.Pointer), packetLength));
             }
         }
 
         public static bool TryGetEncodedDataForSpeaker(out ArraySegment<byte> packet)
         {
-            lock (fakeUDPSharedBufferLock)
+            lock (packetBufferLock)
             {
-                return fakeUDPBuffer.TryDequeue(out packet);
+                return packetBuffer.TryDequeue(out packet);
             }
         }
 
         private static void StartMicInput()
         {
-            micInputChannel = Bass.BASS_RecordStart(SAMPLE_RATE, NUM_CHANNELS, BASSFlag.BASS_DEFAULT, 10, opusEncoder.RecordingProcess, nint.Zero);
+            micInputChannel = Bass.BASS_RecordStart(SAMPLE_RATE, NUM_CHANNELS, BASSFlag.BASS_DEFAULT, MIC_BUFFER_MS, opusEncoder.RecordingProcess, nint.Zero);
             fxCompressorHandle = Bass.BASS_ChannelSetFX(micInputChannel, BASSFXType.BASS_FX_BFX_COMPRESSOR2, 0);
             Bass.BASS_FXSetParameters(fxCompressorHandle, compressorSettings);
         }
@@ -82,9 +92,17 @@ namespace Commons.Audio
             Bass.BASS_ChannelPlay(speakerOutputChannel, false);
         }
 
-        public static void AddAudioSamples(byte[] audio, int numBytesRead)
+        public static void AddAudioSamples(ArraySegment<byte> data)
         {
-            //monBuffer.Write(audio, numBytesRead);
+            lock (packetBufferLock)
+            {
+                packetBuffer.Enqueue(data);
+            }
+        }
+
+        internal static void SetVoipPeer(VoipPeer voipPeer)
+        {
+            AudioController.voipPeer = voipPeer;
         }
     }
 }

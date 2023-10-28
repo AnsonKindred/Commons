@@ -3,10 +3,17 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:svg="http://sharpvectors.codeplex.com/runtime/"
         xmlns:svgc="http://sharpvectors.codeplex.com/svgc/"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="864" Background="{DynamicResource DefaultBackgroundColor}" WindowState="Maximized" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Loaded="Window_Loaded" SourceInitialized="Window_SourceInitialized">
+        Title="Commons" 
+        Height="450" 
+        Width="864" 
+        Background="{DynamicResource DefaultBackgroundColor}" 
+        HorizontalContentAlignment="Stretch" 
+        VerticalContentAlignment="Stretch" 
+        Loaded="Window_Loaded"
+        Foreground="Black" 
+        BorderBrush="Black">
     <Window.Resources>
         <CollectionViewSource x:Key="spacesViewSource"/>
         <Style x:Key="ChatParagraph"  TargetType="Paragraph">
@@ -16,18 +23,30 @@
         </Style>
     </Window.Resources>
     <Grid ShowGridLines="True">
-
-        <Border BorderBrush="#FF0F0F10" BorderThickness="0,0,1,0" Grid.Column="0" Width="150" HorizontalAlignment="Left">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Border BorderBrush="#FF0F0F10" BorderThickness="0,0,1,0" Grid.Column="0" Width="92" HorizontalAlignment="Left">
             <Grid Margin="0,10,0,0">
-                <DataGrid x:Name="SpaceList" ItemsSource="{Binding Source={StaticResource spacesViewSource}, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,55" HeadersVisibility="None" Background="{x:Null}" BorderBrush="{x:Null}" AutoGenerateColumns="False" GridLinesVisibility="None" IsSynchronizedWithCurrentItem="True" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" SelectionMode="Single" SelectionUnit="Cell" CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False" RowDetailsVisibilityMode="Collapsed" SelectedCellsChanged="DataGrid_CurrentCellChanged">
+                <Grid.Resources>
+                    <DataTemplate x:Key="ServerListEntryTemplate">
+                        <Border CornerRadius="30" BorderBrush="{StaticResource DefaultTextColor}" BorderThickness="3">
+                            <Button HorizontalAlignment="Center" Background="{x:Null}" Width="60" Height="60" BorderBrush="{x:Null}">
+                                <TextBox Text="{Binding Name}" Background="{x:Null}" Foreground="{DynamicResource DefaultTextColor}" BorderBrush="{x:Null}" />
+                            </Button>
+                        </Border>
+                    </DataTemplate>
+                </Grid.Resources>
+                <DataGrid HorizontalContentAlignment="Center" x:Name="SpaceList" ItemsSource="{Binding Source={StaticResource spacesViewSource}, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,55" HeadersVisibility="None" Background="{x:Null}" BorderBrush="{x:Null}" AutoGenerateColumns="False" GridLinesVisibility="None" IsSynchronizedWithCurrentItem="True" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" SelectionMode="Single" SelectionUnit="Cell" CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False" RowDetailsVisibilityMode="Collapsed" SelectedCellsChanged="DataGrid_CurrentCellChanged">
                     <DataGrid.ContextMenu>
                         <ContextMenu>
                             <MenuItem Header="Invite to Space" Click="Invite_Clicked" />
                         </ContextMenu>
                     </DataGrid.ContextMenu>
                     <DataGrid.RowStyle>
-                        <Style TargetType="DataGridRow">
-                            <Setter Property="Background" Value="#00000000"></Setter>
+                        <Style TargetType="{x:Type DataGridRow}">
+                            <Setter Property="Background" Value="#00000000"/>
+                            <Setter Property="HorizontalAlignment" Value="Center"/>
                             <Style.Triggers>
                                 <Trigger Property="IsFocused" Value="False">
                                     <Setter Property="BorderBrush" Value="#00000000" />
@@ -36,8 +55,9 @@
                         </Style>
                     </DataGrid.RowStyle>
                     <DataGrid.CellStyle>
-                        <Style TargetType="DataGridCell">
-                            <Setter Property="Background" Value="#00000000"></Setter>
+                        <Style TargetType="{x:Type DataGridCell}">
+                            <Setter Property="Background" Value="#00000000"/>
+                            <Setter Property="HorizontalAlignment" Value="Center"/>
                             <Style.Triggers>
                                 <Trigger Property="IsSelected" Value="False">
                                     <Setter Property="BorderBrush" Value="#00000000" />
@@ -49,16 +69,12 @@
                         </Style>
                     </DataGrid.CellStyle>
                     <DataGrid.Columns>
-                        <DataGridTextColumn Binding="{Binding Name}" Width="*" Header="Name" IsReadOnly="True" Foreground="{DynamicResource DefaultTextColor}" CanUserResize="False" CanUserReorder="False"/>
+                        <DataGridTemplateColumn CellTemplate="{StaticResource ServerListEntryTemplate}" />
                     </DataGrid.Columns>
                 </DataGrid>
-                <Button VerticalAlignment="Bottom" HorizontalAlignment="Right" Background="{x:Null}" Width="40" Height="40" BorderBrush="{x:Null}" Click="AddSpace_Button_Click" Margin="0,0,25,10">
+                <Button HorizontalAlignment="Center" Background="{x:Null}" Width="40" BorderBrush="{x:Null}" Click="AddSpace_Button_Click" Margin="0,0,0,10" Height="40" VerticalAlignment="Bottom">
                     <Image Source="{svgc:SvgImage AppName=Commons, Source=/Apple_system_icon_plus.svg}"/>
                 </Button>
-                <Button VerticalAlignment="Bottom" HorizontalAlignment="Left" Background="{x:Null}" Width="40" Height="40" BorderBrush="{x:Null}" Click="LinkSpace_Button_Click" Margin="25,0,0,10">
-                    <Image Source="{svgc:SvgImage AppName=Commons, Source=/link.svg}"/>
-                </Button>
-                <Button Content="Button" HorizontalAlignment="Center" Margin="0,300,0,0" VerticalAlignment="Top" Click="ProcessLatencyLogs"/>
             </Grid>
         </Border>
         <Grid Margin="155,10,10,10">

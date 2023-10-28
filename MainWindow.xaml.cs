@@ -7,6 +7,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -40,6 +41,12 @@ namespace Commons
 
             InitializeComponent();
             spacesViewSource = (CollectionViewSource)FindResource(nameof(spacesViewSource));
+        }
+
+        protected override void OnSourceInitialized(EventArgs e)
+        {
+            App.SetWindowDarkMode(this);
+            IconHelper.RemoveIcon(this);
         }
 
         protected override void OnClosed(EventArgs e)
@@ -218,8 +225,6 @@ namespace Commons
                 AddChatText(chat);
             }
         }
-
-        public void Window_SourceInitialized(object sender, EventArgs e) => App.SetWindowDarkMode((Window)sender);
 
         private async void DataGrid_CurrentCellChanged(object sender, SelectedCellsChangedEventArgs e)
         {

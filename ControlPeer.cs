@@ -7,6 +7,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using Commons.Audio;
 
 namespace Commons
 {
@@ -270,6 +271,8 @@ namespace Commons
             IPEndPoint voipEndPoint = new IPEndPoint(voipAddress, voipPort);
 
             await spaceNetworker.VoipPeer.Connect(voipEndPoint);
+
+            AudioController.StartMonitoringDecoding();
         }
 
         private void DoAddSpace(byte[]? payload)

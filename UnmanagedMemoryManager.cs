@@ -15,8 +15,13 @@ namespace Commons
     public sealed unsafe class UnmanagedMemoryManager<T> : MemoryManager<T>
         where T : unmanaged
     {
-        internal T* Pointer { get; private set; }
-        private readonly int _length;
+        internal T* Pointer;
+        internal int Length;
+
+        public UnmanagedMemoryManager()
+        {
+
+        }
 
         /// <summary>
         /// Create a new UnmanagedMemoryManager instance at the given pointer and size
@@ -27,7 +32,7 @@ namespace Commons
             fixed (T* ptr = &MemoryMarshal.GetReference(span))
             {
                 Pointer = ptr;
-                _length = span.Length;
+                Length = span.Length;
             }
         }
         /// <summary>
@@ -37,19 +42,19 @@ namespace Commons
         {
             if (length < 0) throw new ArgumentOutOfRangeException(nameof(length));
             Pointer = pointer;
-            _length = length;
+            Length = length;
         }
         /// <summary>
         /// Obtains a span that represents the region
         /// </summary>
-        public override Span<T> GetSpan() => new Span<T>(Pointer, _length);
+        public override Span<T> GetSpan() => new Span<T>(Pointer, Length);
 
         /// <summary>
         /// Provides access to a pointer that represents the data (note: no actual pin occurs)
         /// </summary>
         public override MemoryHandle Pin(int elementIndex = 0)
         {
-            if (elementIndex < 0 || elementIndex >= _length)
+            if (elementIndex < 0 || elementIndex >= Length)
                 throw new ArgumentOutOfRangeException(nameof(elementIndex));
             return new MemoryHandle(Pointer + elementIndex);
         }

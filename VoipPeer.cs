@@ -36,7 +36,7 @@ namespace Commons
 
         public bool IsHost { get; internal set; } = false;
 
-        public VoipPeer(int audioBufferSize = short.MaxValue*2, int maxClients = 10) : base(445, ProtocolType.Udp)
+        public VoipPeer(int audioBufferSize = short.MaxValue*2, int maxClients = 10) : base(1024, ProtocolType.Udp)
         {
             audioBuffer = new AudioBuffer(audioBufferSize * maxClients);
 
@@ -51,7 +51,7 @@ namespace Commons
             if (udpClient.LocalEndPoint == null) throw new SocketException((int)SocketError.SocketError);
 
             receiveArg.SetBuffer(audioBuffer.BackingBuffer, audioBuffer.Offset, audioBuffer.Count);
-            receiveArg.Completed += ReceiveFromClient;
+            receiveArg.Completed += Receive;
             // This just allocates space for the remote endpoint
             receiveArg.RemoteEndPoint = new IPEndPoint(udpClient.LocalEndPoint.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, 0);
             bool willAsync = true;
@@ -65,7 +65,7 @@ namespace Commons
             }
             if (!willAsync)
             {
-                ReceiveFromClient(null, receiveArg);
+                Receive(null, receiveArg);
             }
 
             return await base.StartHosting((IPEndPoint)udpClient.LocalEndPoint);
@@ -87,8 +87,11 @@ namespace Commons
                 connectedClients.Add(bridgeEndPoints.Item1.AddressFamily == udpClient.LocalEndPoint.AddressFamily ? bridgeEndPoints.Item1 : bridgeEndPoints.Item2);
             }
 
+            AudioController.StartMicInput();
+            AudioController.StartSpeakerOutput();
+
             receiveArg.SetBuffer(audioBuffer.BackingBuffer, audioBuffer.Offset, audioBuffer.Count);
-            receiveArg.Completed += ReceiveFromClient;
+            receiveArg.Completed += Receive;
             // This just allocates space for the remote endpoint
             receiveArg.RemoteEndPoint = new IPEndPoint(udpClient.LocalEndPoint.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, 0);
             bool willAsync = true;
@@ -102,23 +105,37 @@ namespace Commons
             }
             if (!willAsync)
             {
-                ReceiveFromClient(null, receiveArg);
+                Receive(null, receiveArg);
             }
 
             return bridgeEndPoints;
         }
 
-        protected void ReceiveFromClient(object? sender, SocketAsyncEventArgs receiveArg)
+        protected void Receive(object? sender, SocketAsyncEventArgs receiveArg)
         {
             if (receiveArg.RemoteEndPoint == null) throw new SocketException((int)SocketError.SocketError);
-
+            if (receiveArg.BytesTransferred == 0) return;
             try
             {
                 if (!connectedClients.Contains(receiveArg.RemoteEndPoint))
                 {
                     Trace.WriteLine("Adding client: " + receiveArg.RemoteEndPoint);
+
+                    if (IsHost)
+                    {
+                        AudioController.StartMicInput();
+                        AudioController.StartSpeakerOutput();
+
+                        // Start monitoring encoding when a client connects that way we don't have a bunch of encoded packets from before a client connected.
+                        if (!AudioController.opusDecoder.doMonitoring)
+                        {
+                            AudioController.StartMonitoringEncoding();
+                        }
+                    }
+
                     connectedClients.Add((IPEndPoint)receiveArg.RemoteEndPoint);
                 }
+
                 AudioController.AddAudioSamples(new ArraySegment<byte>(audioBuffer.BackingBuffer, audioBuffer.Offset, receiveArg.BytesTransferred));
 
                 // Poor man's circle buffer
@@ -134,22 +151,21 @@ namespace Commons
                 bool willAsync = udpClient.ReceiveFromAsync(receiveArg);
                 if (!willAsync)
                 {
-                    ReceiveFromClient(sender, receiveArg);
+                    Receive(sender, receiveArg);
                 }
             }
             catch (ObjectDisposedException) { }
             catch (IOException) { }
         }
 
-        internal void Send(ArraySegment<byte> data)
+        internal void Send(byte[] data, int offset, int length)
         {
             if (connectedClients.Count > 0)
             {
                 foreach (var client in connectedClients)
                 {
-                    sendArg.SetBuffer(data.Array, data.Offset, data.Count);
                     sendArg.RemoteEndPoint = client;
-                    udpClient.SendToAsync(sendArg);
+                    udpClient.SendTo(data, offset, length, SocketFlags.None, client);
                 }
             }
         }

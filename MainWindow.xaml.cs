@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Diagnostics;
+using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -10,7 +12,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
-using System.Windows.Media.Animation;
 using Commons.Audio;
 using Microsoft.EntityFrameworkCore;
 using NobleConnect;
@@ -32,6 +33,8 @@ namespace Commons
         {
             Logger.logger = (s) => Trace.WriteLine(s);
             Logger.logLevel = Logger.Level.Developer;
+
+           
 
             AudioController.Init();
 
@@ -235,6 +238,82 @@ namespace Commons
             InviteToSpaceWindow inviteToSpaceWindow = new InviteToSpaceWindow();
             inviteToSpaceWindow.SpaceLink = CurrentSpace.Address + ":" + CurrentSpace.Port;
             inviteToSpaceWindow.ShowDialog();
+        }
+
+        private async void ProcessLatencyLogs(object sender, RoutedEventArgs e)
+        {
+            Trace.WriteLine("Calculating latency");
+
+            AudioController.StopMonitoringEncoding();
+            AudioController.StopMonitoringDecoding();
+
+            await Task.Delay(200);
+
+            Dictionary<ushort, long> encoderLog = new();
+            Dictionary<ushort, long> decoderLog = new();
+
+            using (FileStream encoderMonitorFile = new FileStream("encoder.stuff", FileMode.OpenOrCreate, FileAccess.Read))
+            using (BinaryReader reader = new BinaryReader(encoderMonitorFile))
+            {
+                try
+                {
+                    while (true)
+                    {
+                        ushort sequenceNumber = reader.ReadUInt16();
+                        long time = reader.ReadInt64();
+                        encoderLog.Add(sequenceNumber, time);
+                        Trace.WriteLine("Encoded " + sequenceNumber + " " + time);
+                    }
+                }
+                catch (Exception) { }
+            }
+
+            using (FileStream decoderMonitorFile = new FileStream("decoder.stuff", FileMode.OpenOrCreate, FileAccess.Read))
+            using (BinaryReader reader = new BinaryReader(decoderMonitorFile))
+            {
+                try
+                {
+                    while (true)
+                    {
+                        ushort sequenceNumber = reader.ReadUInt16();
+                        long time = reader.ReadInt64();
+                        decoderLog.Add(sequenceNumber, time);
+                        Trace.WriteLine("Decoded " + sequenceNumber + " " + time);
+                    }
+                }
+                catch (Exception) { }
+            }
+
+            long total = 0;
+            int count = decoderLog.Count;
+            int previousSequenceNumber = -1;
+            foreach (var kv in decoderLog)
+            {
+                ushort sequenceNumber = kv.Key;
+                if (sequenceNumber != (previousSequenceNumber + 1))
+                {
+                    Trace.WriteLine("missing sequence number " + (previousSequenceNumber + 1));
+                }
+                previousSequenceNumber = sequenceNumber;
+                long decodedTime = kv.Value;
+                bool hasEncodedTime = encoderLog.TryGetValue(sequenceNumber, out long encodedTime);
+                if (!hasEncodedTime)
+                {
+                    Trace.WriteLine("encoded time missing for: " + sequenceNumber);
+                    count--;
+                }
+                else
+                {
+                    long dif = decodedTime - encodedTime;
+                    if (dif < 0)
+                    {
+                        Trace.WriteLine("why is diff negative: " + sequenceNumber + " " + decodedTime + " - " + encodedTime + " = " + dif);
+                    }
+                    total += dif;
+                }
+            }
+            double average = (double)total / count;
+            Trace.WriteLine("AVERAGE RECORDED LATENCY: " + average + "us (" + average / 1000 + "ms) " + " (" + average / 1000000 + "s)");
         }
     }
 }

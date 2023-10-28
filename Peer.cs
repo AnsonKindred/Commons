@@ -35,7 +35,6 @@ namespace Commons
             config.username = parts[1];
             config.password = parts[2];
             config.bufferSize = bufferSize;
-            config.forceRelayOnly = true;
             config.iceServerAddress = "159.203.136.135";// us -east.connect.noblewhale.com";
             config.icePort = 3478;
             config.protocolType = protocol;

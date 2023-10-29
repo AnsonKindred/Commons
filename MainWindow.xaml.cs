@@ -35,8 +35,6 @@ namespace Commons
             Logger.logger = (s) => Trace.WriteLine(s);
             Logger.logLevel = Logger.Level.Developer;
 
-           
-
             AudioController.Init();
 
             InitializeComponent();

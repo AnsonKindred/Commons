@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Commons"
         mc:Ignorable="d"
-        Title="Add Server" Height="201" Width="400" Background="{DynamicResource DefaultBackgroundColor}" Topmost="True" ShowInTaskbar="False" ResizeMode="NoResize" WindowStartupLocation="CenterOwner" SourceInitialized="Window_SourceInitialized">
+        Title="Add Server" Height="201" Width="400" Background="{DynamicResource DarkestBackgroundColor}" Topmost="True" ShowInTaskbar="False" ResizeMode="NoResize" WindowStartupLocation="CenterOwner" SourceInitialized="Window_SourceInitialized">
     <Grid Margin="35,0,35,21">
         <Grid.ColumnDefinitions>
             <ColumnDefinition/>

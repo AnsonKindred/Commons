@@ -5,10 +5,11 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:svgc="http://sharpvectors.codeplex.com/svgc/"
         mc:Ignorable="d"
+        Name="Commons"
         Title="Commons" 
         Height="450" 
         Width="864" 
-        Background="{DynamicResource DefaultBackgroundColor}" 
+        Background="{DynamicResource DarkestBackgroundColor}" 
         HorizontalContentAlignment="Stretch" 
         VerticalContentAlignment="Stretch" 
         Loaded="Window_Loaded"
@@ -16,106 +17,257 @@
         BorderBrush="Black">
     <Window.Resources>
         <CollectionViewSource x:Key="spacesViewSource"/>
+        <CollectionViewSource x:Key="channelsViewSource"/>
         <Style x:Key="ChatParagraph"  TargetType="Paragraph">
             <Setter Property="Foreground" Value="{DynamicResource DefaultTextColor}" />
+            <Setter Property="FontFamily" Value="{DynamicResource gg-sans-font-normal}" />
+            <Setter Property="FontSize" Value="18" />
             <Setter Property="Margin" Value="0,5,0,5" />
             <Setter Property="Padding" Value="0,0,0,0" />
         </Style>
+        <FontFamily x:Key="gg-sans-font-normal" >/Fonts/#gg_sans_Normal</FontFamily>
+        <FontFamily x:Key="gg-sans-font-bold" >/Fonts/#gg_sans_Bold</FontFamily>
+        <FontFamily x:Key="gg-sans-font-medium" >/Fonts/#gg_sans_Medium</FontFamily>
+        <FontFamily x:Key="gg-sans-font-semibold" >/Fonts/#gg_sans_Semibold</FontFamily>
     </Window.Resources>
-    <Grid ShowGridLines="True">
+    <Grid x:Name="MainArea" ShowGridLines="False" HorizontalAlignment="Stretch">
         <Grid.ColumnDefinitions>
+            <ColumnDefinition  Width="96"/>
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
-        <Border BorderBrush="#FF0F0F10" BorderThickness="0,0,1,0" Grid.Column="0" Width="92" HorizontalAlignment="Left">
-            <Grid Margin="0,10,0,0">
-                <Grid.Resources>
-                    <DataTemplate x:Key="ServerListEntryTemplate">
-                        <Border BorderBrush="{StaticResource DefaultTextColor}" BorderThickness="3">
-                            <Border.Style>
-                                <Style>
+        <Grid x:Name="SpaceListArea" HorizontalAlignment="Stretch" Grid.Column="0" Grid.Row="0" Margin="0,12,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition />
+                <RowDefinition Height="60"/>
+            </Grid.RowDefinitions>
+            <Grid.Resources>
+                <DataTemplate x:Key="ServerListEntryTemplate">
+                    <Border BorderBrush="{StaticResource DefaultTextColor}" BorderThickness="3">
+                        <Border.Style>
+                            <Style>
+                                <Style.Triggers>
+                                    <Trigger Property="UIElement.IsMouseOver" Value="True">
+                                        <Setter Property="Border.CornerRadius" Value="15"/>
+                                    </Trigger>
+                                    <Trigger Property="UIElement.IsMouseOver" Value="False">
+                                        <Setter Property="Border.CornerRadius" Value="30"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <Button HorizontalAlignment="Center" Background="Transparent" Width="60" Height="60" BorderBrush="{x:Null}" VerticalContentAlignment="Center">
+                            <Button.Style>
+                                <Style TargetType="{x:Type Button}">
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="{x:Type Button}">
+                                                <Border Background="{TemplateBinding Background}" BorderBrush="Transparent" BorderThickness="0">
+                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
                                     <Style.Triggers>
-                                        <Trigger Property="Border.IsMouseOver" Value="True">
-                                            <Setter Property="Border.CornerRadius" Value="15"/>
-                                        </Trigger>
-                                        <Trigger Property="Border.IsMouseOver" Value="False">
-                                            <Setter Property="Border.CornerRadius" Value="30"/>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="Transparent"/>
                                         </Trigger>
                                     </Style.Triggers>
                                 </Style>
-                            </Border.Style>
-                            <Button HorizontalAlignment="Center" Background="Transparent" Width="60" Height="60" BorderBrush="{x:Null}" VerticalContentAlignment="Center">
-                                <Button.Style>
-                                    <Style TargetType="{x:Type Button}">
-                                        <Setter Property="Background" Value="Transparent"/>
-                                        <Setter Property="Template">
-                                            <Setter.Value>
-                                                <ControlTemplate TargetType="{x:Type Button}">
-                                                    <Border Background="{TemplateBinding Background}" BorderBrush="Transparent" BorderThickness="0">
-                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                    </Border>
-                                                </ControlTemplate>
-                                            </Setter.Value>
-                                        </Setter>
-                                        <Style.Triggers>
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter Property="Background" Value="Transparent"/>
-                                            </Trigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Button.Style>
-                                <TextBlock Text="{Binding Name, Converter={StaticResource serverNameConverter}}" Background="{x:Null}" Foreground="{DynamicResource DefaultTextColor}" FontSize="24" VerticalAlignment="Center" />
-                            </Button>
-                        </Border>
-                    </DataTemplate>
-                </Grid.Resources>
-                <DataGrid HorizontalContentAlignment="Center" x:Name="SpaceList" ItemsSource="{Binding Source={StaticResource spacesViewSource}, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,55" HeadersVisibility="None" Background="{x:Null}" BorderBrush="{x:Null}" AutoGenerateColumns="False" GridLinesVisibility="None" IsSynchronizedWithCurrentItem="True" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" SelectionMode="Single" SelectionUnit="Cell" CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False" RowDetailsVisibilityMode="Collapsed" SelectedCellsChanged="DataGrid_CurrentCellChanged">
-                    <DataGrid.ContextMenu>
-                        <ContextMenu>
-                            <MenuItem Header="Invite to Space" Click="Invite_Clicked" />
-                        </ContextMenu>
-                    </DataGrid.ContextMenu>
-                    <DataGrid.RowStyle>
-                        <Style TargetType="{x:Type DataGridRow}">
-                            <Setter Property="Background" Value="#00000000"/>
-                            <Setter Property="HorizontalAlignment" Value="Center"/>
-                            <Style.Triggers>
-                                <Trigger Property="IsFocused" Value="False">
-                                    <Setter Property="BorderBrush" Value="#00000000" />
-                                </Trigger>
-                            </Style.Triggers>
-                        </Style>
-                    </DataGrid.RowStyle>
-                    <DataGrid.CellStyle>
-                        <Style TargetType="{x:Type DataGridCell}">
-                            <Setter Property="Background" Value="#00000000"/>
-                            <Setter Property="HorizontalAlignment" Value="Center"/>
-                            <Style.Triggers>
-                                <Trigger Property="IsSelected" Value="False">
-                                    <Setter Property="BorderBrush" Value="#00000000" />
-                                </Trigger>
-                                <Trigger Property="IsFocused" Value="False">
-                                    <Setter Property="BorderBrush" Value="#00000000" />
-                                </Trigger>
-                            </Style.Triggers>
-                        </Style>
-                    </DataGrid.CellStyle>
-                    <DataGrid.Columns>
-                        <DataGridTemplateColumn CellTemplate="{StaticResource ServerListEntryTemplate}" />
-                    </DataGrid.Columns>
-                </DataGrid>
-                <Button HorizontalAlignment="Center" Background="{x:Null}" Width="40" BorderBrush="{x:Null}" Click="AddSpace_Button_Click" Margin="0,0,0,10" Height="40" VerticalAlignment="Bottom">
-                    <Image Source="{svgc:SvgImage AppName=Commons, Source=/Apple_system_icon_plus.svg}"/>
-                </Button>
+                            </Button.Style>
+                            <TextBlock Text="{Binding Name, Converter={StaticResource serverNameConverter}}" Background="{x:Null}" Foreground="{DynamicResource DefaultTextColor}" FontSize="24" VerticalAlignment="Center" />
+                        </Button>
+                    </Border>
+                </DataTemplate>
+            </Grid.Resources>
+            <DataGrid Grid.Column="0" Grid.Row="0" HorizontalContentAlignment="Center" x:Name="SpaceList" ItemsSource="{Binding Source={StaticResource spacesViewSource}, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,55" HeadersVisibility="None" Background="Transparent" BorderBrush="Transparent" AutoGenerateColumns="False" GridLinesVisibility="None" IsSynchronizedWithCurrentItem="True" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" SelectionMode="Single" SelectionUnit="Cell" CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False" RowDetailsVisibilityMode="Collapsed" SelectedCellsChanged="DataGrid_CurrentCellChanged">
+                <DataGrid.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="Invite to Space" Click="Invite_Clicked" />
+                    </ContextMenu>
+                </DataGrid.ContextMenu>
+                <DataGrid.RowStyle>
+                    <Style TargetType="{x:Type DataGridRow}">
+                        <Setter Property="Background" Value="#00000000"/>
+                        <Setter Property="HorizontalAlignment" Value="Center"/>
+                        <Style.Triggers>
+                            <Trigger Property="IsFocused" Value="False">
+                                <Setter Property="BorderBrush" Value="#00000000" />
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </DataGrid.RowStyle>
+                <DataGrid.CellStyle>
+                    <Style TargetType="{x:Type DataGridCell}">
+                        <Setter Property="Background" Value="#00000000"/>
+                        <Setter Property="HorizontalAlignment" Value="Center"/>
+                        <Style.Triggers>
+                            <Trigger Property="IsSelected" Value="False">
+                                <Setter Property="BorderBrush" Value="#00000000" />
+                            </Trigger>
+                            <Trigger Property="IsFocused" Value="False">
+                                <Setter Property="BorderBrush" Value="#00000000" />
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </DataGrid.CellStyle>
+                <DataGrid.Columns>
+                    <DataGridTemplateColumn CellTemplate="{StaticResource ServerListEntryTemplate}" />
+                </DataGrid.Columns>
+            </DataGrid>
+            <Button x:Name="AddSpaceButton" Grid.Column="0" Grid.Row="1" HorizontalAlignment="Center" Background="{x:Null}" Width="40" BorderBrush="{x:Null}" Click="AddSpace_Button_Click" Margin="0,0,0,10" Height="40" VerticalAlignment="Bottom">
+                <Image x:Name="AddSpaceButtonImage" Source="{svgc:SvgImage AppName=Commons, Source=/Apple_system_icon_plus.svg}"/>
+            </Button>
+        </Grid>
+        <Border x:Name="ChannelsAndChatAreaCurvedBorder" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Column="1" Grid.Row="0" BorderBrush="{DynamicResource DarkestBackgroundColor}" CornerRadius="10,0,0,0" Background="{DynamicResource DarkerBackgroundColor}">
+            <Grid ShowGridLines="False" x:Name="ChannelsAndChatArea">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="315" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid ShowGridLines="False" x:Name="ChannelGroupsList" Margin="3,10,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="25" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="25" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <Button BorderBrush="Transparent" Grid.Row="0" Background="Transparent" HorizontalContentAlignment="Stretch" Margin="0,0,60,0">
+                        <Grid ShowGridLines="False" HorizontalAlignment="Stretch">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="20" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="🢓" Foreground="{DynamicResource MutedTextColor}" Margin="0,2,0,0" FontSize="26" />
+                            <TextBlock Grid.Column="1" Text="TEXT CHANNELS" Foreground="{DynamicResource MutedTextColor}" FontFamily="{StaticResource gg-sans-font-bold}" FontSize="15"  VerticalAlignment="Center" HorizontalAlignment="Left" FontWeight="Bold" />
+                        </Grid>
+                    </Button>
+                    <Button BorderBrush="Transparent"  Grid.Row="0" Background="Transparent" HorizontalContentAlignment="Stretch" HorizontalAlignment="Right" VerticalContentAlignment="Center" VerticalAlignment="Center" Width="35" Margin="0,0,20,0">
+                        <TextBlock Text="+" Foreground="{DynamicResource MutedTextColor}" HorizontalAlignment="Center" FontSize="36" TextAlignment="Center" LineStackingStrategy="BlockLineHeight" LineHeight="25.6"/>
+                    </Button>
+                    <DataGrid Grid.Row="1" x:Name="TextChannelList" Grid.Column="0" ItemsSource="{Binding Source={StaticResource channelsViewSource}, UpdateSourceTrigger=PropertyChanged}" Margin="0,10,0,0"  HeadersVisibility="None" Background="{x:Null}" BorderBrush="{x:Null}" AutoGenerateColumns="False" GridLinesVisibility="None" IsSynchronizedWithCurrentItem="True" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" SelectionMode="Single" SelectionUnit="Cell" CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False" RowDetailsVisibilityMode="Collapsed" SelectedCellsChanged="OnChannelSelectionChanged" HorizontalAlignment="Stretch" BorderThickness="0" Padding="0" HorizontalContentAlignment="Stretch" ColumnWidth="*">
+                        <DataGrid.RowStyle>
+                            <Style TargetType="{x:Type DataGridRow}">
+                                <Setter Property="Background" Value="#00000000"/>
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                                <Style.Triggers>
+                                    <Trigger Property="IsFocused" Value="False">
+                                        <Setter Property="BorderBrush" Value="#00000000" />
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGrid.RowStyle>
+                        <DataGrid.CellStyle>
+                            <Style TargetType="{x:Type DataGridCell}">
+                                <Setter Property="Background" Value="#00000000"/>
+                                <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                <Style.Triggers>
+                                    <Trigger Property="IsSelected" Value="False">
+                                        <Setter Property="BorderBrush" Value="#00000000" />
+                                    </Trigger>
+                                    <Trigger Property="IsFocused" Value="False">
+                                        <Setter Property="BorderBrush" Value="#00000000" />
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGrid.CellStyle>
+                        <DataGrid.Resources>
+                            <DataTemplate x:Key="ChannelListEntryTemplate">
+                                <Button Margin="0" HorizontalContentAlignment="Left" HorizontalAlignment="Stretch" Background="Transparent" BorderBrush="{x:Null}" Padding="0" BorderThickness="0">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="51"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock HorizontalAlignment="Center" Grid.Column="0" Padding="9,4,0,0" Text="#" Background="{x:Null}" Foreground="{DynamicResource MutedTextColor}" FontSize="32" FontFamily="{StaticResource gg-sans-font-bold}" VerticalAlignment="Bottom" />
+                                        <TextBlock Grid.Column="1" Text="{Binding Name}" Background="{x:Null}" Foreground="{DynamicResource MutedTextColor}" FontSize="18" FontFamily="Arial" VerticalAlignment="Center" FontWeight="Bold" />
+                                    </Grid>
+                                </Button>
+                            </DataTemplate>
+                        </DataGrid.Resources>
+                        <DataGrid.Columns>
+                            <DataGridTemplateColumn x:Name="TextChannelEntryTemplate" CellTemplate="{StaticResource ChannelListEntryTemplate}" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <Button BorderBrush="Transparent" Grid.Row="2" Background="Transparent" HorizontalContentAlignment="Stretch" Margin="0,0,60,0">
+                        <Grid ShowGridLines="False" HorizontalAlignment="Stretch">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="20" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="🢓" Foreground="{DynamicResource MutedTextColor}" Margin="0,2,0,0" FontSize="26"/>
+                            <TextBlock Grid.Column="1" Text="VOICE CHANNELS" Foreground="{DynamicResource MutedTextColor}" VerticalAlignment="Center" HorizontalAlignment="Left" FontFamily="{StaticResource gg-sans-font-bold}" FontWeight="Bold"/>
+                        </Grid>
+                    </Button>
+                    <Button BorderBrush="Transparent"  Grid.Row="2" Background="Transparent" HorizontalContentAlignment="Stretch" HorizontalAlignment="Right" VerticalContentAlignment="Center" VerticalAlignment="Center" Width="35" Margin="0,0,20,0">
+                        <TextBlock Text="+" Foreground="{DynamicResource MutedTextColor}" HorizontalAlignment="Center" FontSize="36" TextAlignment="Center" LineStackingStrategy="BlockLineHeight" LineHeight="25.6"/>
+                    </Button>
+                    <DataGrid Grid.Row="3" x:Name="VoiceChannelList" ItemsSource="{Binding Source={StaticResource channelsViewSource}, UpdateSourceTrigger=PropertyChanged}" Margin="0,10,0,0"  HeadersVisibility="None" Background="{x:Null}" BorderBrush="{x:Null}" AutoGenerateColumns="False" GridLinesVisibility="None" IsSynchronizedWithCurrentItem="True" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" SelectionMode="Single" SelectionUnit="Cell" CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False" RowDetailsVisibilityMode="Collapsed" SelectedCellsChanged="OnChannelSelectionChanged" HorizontalAlignment="Stretch" BorderThickness="0" Padding="0" HorizontalContentAlignment="Stretch" ColumnWidth="*">
+                        <DataGrid.RowStyle>
+                            <Style TargetType="{x:Type DataGridRow}">
+                                <Setter Property="Background" Value="#00000000"/>
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                                <Style.Triggers>
+                                    <Trigger Property="IsFocused" Value="False">
+                                        <Setter Property="BorderBrush" Value="#00000000" />
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGrid.RowStyle>
+                        <DataGrid.CellStyle>
+                            <Style TargetType="{x:Type DataGridCell}">
+                                <Setter Property="Background" Value="#00000000"/>
+                                <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                <Style.Triggers>
+                                    <Trigger Property="IsSelected" Value="False">
+                                        <Setter Property="BorderBrush" Value="#00000000" />
+                                    </Trigger>
+                                    <Trigger Property="IsFocused" Value="False">
+                                        <Setter Property="BorderBrush" Value="#00000000" />
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGrid.CellStyle>
+                        <DataGrid.Resources>
+                            <DataTemplate x:Key="ChannelListEntryTemplate">
+                                <Button Margin="0" HorizontalContentAlignment="Left" HorizontalAlignment="Stretch" Background="Transparent" Height="60" BorderBrush="{x:Null}" Padding="0" BorderThickness="0">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="51"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock HorizontalAlignment="Center" Grid.Column="0" Padding="15,2,0,0" Text="🔈" Background="{x:Null}" Foreground="{DynamicResource MutedTextColor}" FontSize="28" FontFamily="{StaticResource gg-sans-font-bold}" VerticalAlignment="Bottom" />
+                                        <TextBlock Grid.Column="1" Text="{Binding Name}" Background="{x:Null}" Foreground="{DynamicResource MutedTextColor}" FontSize="18" FontFamily="Arial" VerticalAlignment="Center" FontWeight="Bold" />
+                                    </Grid>
+                                </Button>
+                            </DataTemplate>
+                        </DataGrid.Resources>
+                        <DataGrid.Columns>
+                            <DataGridTemplateColumn x:Name="VoiceChannelEntryTemplate" CellTemplate="{StaticResource ChannelListEntryTemplate}" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+                
+                <Grid x:Name="ChatArea" Grid.Column="1" Margin="0,0,0,2" Background="{DynamicResource DarkBackgroundColor}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition Height="40"/>
+                    </Grid.RowDefinitions>
+                    <FlowDocumentScrollViewer x:Name="chatWindow" Grid.Row="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0,0,0,10" ScrollViewer.VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" ScrollViewer.HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                        <FlowDocument/>
+                    </FlowDocumentScrollViewer>
+                    <Border x:Name="ChatBoxBorder" Grid.Row="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" BorderBrush="#00000000" BorderThickness="2,2,2,2" Height="40" CornerRadius="4,4,4,4" Background="{DynamicResource DefaultTextboxColor}">
+                        <TextBox x:Name="ChatBox" CaretBrush="#FFDFE0E9" TextWrapping="Wrap" Foreground="{DynamicResource DefaultTextColor}" Background="{x:Null}" BorderBrush="{x:Null}" Padding="6,6,6,6" PreviewKeyUp="TextBox_KeyUp"/>
+                    </Border>
+                </Grid>
             </Grid>
         </Border>
-        <Grid Margin="155,10,10,10">
-            <FlowDocumentScrollViewer x:Name="chatWindow" Margin="0,0,0,45" ScrollViewer.VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" ScrollViewer.HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-                <FlowDocument>
-                </FlowDocument>
-            </FlowDocumentScrollViewer>
-            <Border BorderBrush="#00000000" BorderThickness="2,2,2,2" Height="40" CornerRadius="4,4,4,4" Background="{DynamicResource DefaultTextboxColor}" Grid.Row="1" VerticalAlignment="Bottom">
-                <TextBox CaretBrush="#FFDFE0E9" TextWrapping="Wrap" Foreground="{DynamicResource DefaultTextColor}" Background="{x:Null}" BorderBrush="{x:Null}" Padding="6,6,6,6" PreviewKeyUp="TextBox_KeyUp"/>
-            </Border>
-        </Grid>
     </Grid>
 </Window>

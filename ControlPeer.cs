@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading.Tasks;
 using Commons.Audio;
 
@@ -15,14 +14,16 @@ namespace Commons
 
     internal class ControlPeer : Peer
     {
+        public const int GUID_LENGTH = 16;
+
         internal enum Command : byte
         {
-            GET_CLIENTS = 1,
-            ADD_CLIENT = 2,
-            GET_CHATS = 3,
-            ADD_CHAT = 4,
-            ADD_SPACE = 5,
-            CONNECT_TO_VOIP = 6
+            ADD_SPACE,
+            GET_CLIENTS, ADD_CLIENT,
+            GET_CHATS, ADD_CHAT,
+            GET_CHANNELS, ADD_CHANNEL,
+            CLIENT_IS_READY,
+            CONNECT_TO_VOIP
         }
 
         protected TcpListener? listener;
@@ -35,9 +36,15 @@ namespace Commons
         // Use this to be notified when a client connects
         protected event Action<NetworkStream>? ClientConnected;
 
-        SpaceNetworker spaceNetworker;
-        Space space => spaceNetworker.Space;
+        public SpaceNetworker spaceNetworker { get; private set; }
+        public Space? ControlledSpace => spaceNetworker.NetworkedSpace;
         CommonsContext db;
+
+        IPEndPoint? hostRelayEndpoint;
+
+        TaskCompletionSource? joinSpaceTaskCompletionSource;
+
+        byte[] serializationBuffer = new byte[128];
 
         internal ControlPeer(SpaceNetworker spaceNetworker, CommonsContext db) : base(1024, ProtocolType.Tcp) 
         {
@@ -79,37 +86,30 @@ namespace Commons
         internal async Task OnClientConnected(NetworkStream client)
         {
             await SendSpace(client);
+            await SendClients(client);
+            await SendChannels(client);
+            await SendClientIsReady(client);
+            // Send voip endpoint
+            ///await SendVoipEndpoint(client);
         }
 
         internal override async Task<IPTuple?> Connect(IPEndPoint remoteEndPoint)
         {
+            hostRelayEndpoint = remoteEndPoint;
             localClient = new TcpClient(new IPEndPoint(IPAddress.Any, 0));
-            IPTuple? bridgeEndPoints = await base.Connect(remoteEndPoint);
-            if (bridgeEndPoints != null)
-            {
-                localClient.Connect(bridgeEndPoints.Item1);
-                ReceiveFromClient(localClient);
-            }
+            
+            IPTuple? bridgeEndPoints = await base.Connect(hostRelayEndpoint);
+            
+            if (bridgeEndPoints == null) throw new Exception("Bad bridges");
+
+            localClient.Connect(bridgeEndPoints.Item1);
+            ReceiveFromClient(localClient);
+
+            joinSpaceTaskCompletionSource = new TaskCompletionSource();
+
+            await joinSpaceTaskCompletionSource.Task;
 
             return bridgeEndPoints;
-        }
-
-        async Task SendSpace(NetworkStream client)
-        {
-            Trace.WriteLine("Send space: " + space.Name);
-            byte[] payload = Encoding.UTF8.GetBytes(space.Name);
-            await SendCommand(Command.ADD_SPACE, payload, client);
-
-            IPEndPoint voipEndPoint = spaceNetworker.VoipPeer.NobleEndPoint;
-            IPAddress voipAddress = voipEndPoint.Address;
-            ushort voipPort = (ushort)voipEndPoint.Port;
-
-            payload = new byte[16 + sizeof(ushort)];
-            voipAddress.TryWriteBytes(payload, out int bytesWritten);
-            payload[bytesWritten] = (byte)voipPort;
-            payload[bytesWritten + 1] = (byte)(voipPort >> 8);
-            var realPayload = new ArraySegment<byte>(payload, 0, bytesWritten + sizeof(ushort));
-            await SendCommand(Command.CONNECT_TO_VOIP, realPayload, client);
         }
 
         protected async void ReceiveFromClient(TcpClient client)
@@ -171,26 +171,6 @@ namespace Commons
             return bytes;
         }
 
-        internal async Task SendChat(Chat chat, NetworkStream? tcpClient = null, NetworkStream? excludeClient = null)
-        {
-            int length = 16 + sizeof(long) + Encoding.UTF8.GetByteCount(chat.Content);
-            byte[] bytes = new byte[length];
-            chat.Client.Guid.TryWriteBytes(bytes);
-            byte[] timestampBytes = BitConverter.GetBytes(chat.Timestamp);
-            Array.Copy(timestampBytes, 0, bytes, 16, sizeof(long));
-            Encoding.UTF8.GetBytes(chat.Content, 0, chat.Content.Length, bytes, 16 + sizeof(long));
-            await SendCommand(Command.ADD_CHAT, bytes, tcpClient, excludeClient);
-        }
-
-        internal async Task SendClient(Client client, NetworkStream? tcpClient = null, NetworkStream? excludeClient = null)
-        {
-            int length = 16 + Encoding.UTF8.GetByteCount(client.Name);
-            byte[] bytes = new byte[length];
-            client.Guid.TryWriteBytes(bytes);
-            Encoding.UTF8.GetBytes(client.Name, 0, client.Name.Length, bytes, 16);
-            await SendCommand(Command.ADD_CLIENT, bytes, tcpClient, excludeClient);
-        }
-
         internal async Task SendCommand(Command command, NetworkStream? tcpClient = null, NetworkStream? excludeClient = null)
         {
             await SendCommand(command, new ArraySegment<byte>(), tcpClient, excludeClient);
@@ -237,13 +217,108 @@ namespace Commons
             Trace.WriteLine("[" + Process.GetCurrentProcess().Id + "] Doing command " + command);
             switch (command)
             {
-                case Command.GET_CLIENTS: await DoGetClients(tcpClient); break;
-                case Command.ADD_CLIENT: DoAddClient(payload); break;
-                case Command.GET_CHATS: await DoGetChats(tcpClient, payload); break;
-                case Command.ADD_CHAT: await DoAddChat(tcpClient, payload); break;
-                case Command.ADD_SPACE: DoAddSpace(payload); break;
+                case Command.ADD_SPACE: AddSpace(payload); break;
                 case Command.CONNECT_TO_VOIP: await DoConnectToVoipHost(payload); break;
+
+                case Command.GET_CLIENTS: await SendClients(tcpClient); break;
+                case Command.ADD_CLIENT: AddClient(payload); break;
+
+                case Command.GET_CHANNELS: await SendChannels(tcpClient); break;
+                case Command.ADD_CHANNEL: AddChannel(payload); break;
+
+                case Command.GET_CHATS: await SendChats(tcpClient, payload); break;
+                case Command.ADD_CHAT: await AddChat(tcpClient, payload); break;
+
+                case Command.CLIENT_IS_READY: SetClientReady(); break;
             }
+        }
+
+        async Task SendClientIsReady(NetworkStream client)
+        {
+            await SendCommand(Command.CLIENT_IS_READY, null, client);
+        }
+
+        void SetClientReady()
+        {
+            if (joinSpaceTaskCompletionSource == null) throw new NullReferenceException(nameof(joinSpaceTaskCompletionSource));
+            joinSpaceTaskCompletionSource.SetResult();
+        }
+
+        async Task SendSpace(NetworkStream client)
+        {
+            if (ControlledSpace == null) throw new NullReferenceException(nameof(ControlledSpace));
+
+            Trace.WriteLine("Send space: " + ControlledSpace.Name);
+            int numBytesWritten = ControlledSpace.Serialize(serializationBuffer);
+            await SendCommand(Command.ADD_SPACE, new ArraySegment<byte>(serializationBuffer, 0, numBytesWritten), client);
+        }
+
+        private void AddSpace(byte[]? payload)
+        {
+            if (payload == null) throw new NullReferenceException(nameof(payload));
+            if (db.LocalClient == null) throw new NullReferenceException(nameof(db.LocalClient));
+            if (hostRelayEndpoint == null) throw new NullReferenceException(nameof(hostRelayEndpoint));
+
+            Space newSpace = new Space(payload);
+            db.LocalClient.Spaces.Add(newSpace);
+            db.SaveChanges();
+            newSpace.SpaceNetworker = spaceNetworker;
+            spaceNetworker.NetworkedSpace = newSpace;
+
+            Trace.WriteLine("Add space" + newSpace.Name);
+        }
+
+        private async Task SendVoipEndpoint(NetworkStream client)
+        {
+            IPEndPoint voipEndPoint = spaceNetworker.VoipPeer.NobleEndPoint;
+            IPAddress voipAddress = voipEndPoint.Address;
+            ushort voipPort = (ushort)voipEndPoint.Port;
+
+            byte[] payload = new byte[GUID_LENGTH + sizeof(ushort)];
+            voipAddress.TryWriteBytes(payload, out int bytesWritten);
+            payload[bytesWritten] = (byte)voipPort;
+            payload[bytesWritten + 1] = (byte)(voipPort >> 8);
+            var realPayload = new ArraySegment<byte>(payload, 0, bytesWritten + sizeof(ushort));
+
+            // Connect to VOIP host
+            await SendCommand(Command.CONNECT_TO_VOIP, realPayload, client);
+        }
+
+        private async Task SendChannels(NetworkStream tcpClient)
+        {
+            if (ControlledSpace == null) throw new NullReferenceException(nameof(ControlledSpace));
+
+            Trace.WriteLine("Sending channels");
+            foreach (Channel channel in ControlledSpace.Channels)
+            {
+                Trace.WriteLine("Sending channel: " + channel.Name);
+                await SendChannel(channel, tcpClient);
+            }
+        }
+
+        internal async Task SendChannel(Channel channel, NetworkStream? tcpClient = null, NetworkStream? excludeClient = null)
+        {
+            int numChannelBytes = channel.Serialize(serializationBuffer);
+            await SendCommand(Command.ADD_CHANNEL, new ArraySegment<byte>(serializationBuffer, 0, numChannelBytes), tcpClient, excludeClient);
+        }
+
+        private void AddChannel(byte[]? payload)
+        {
+            if (payload == null) throw new NullReferenceException(nameof(payload));
+            if (ControlledSpace == null) throw new NullReferenceException(nameof(ControlledSpace));
+
+            Channel deserializedChannel = new Channel(payload);
+
+            Channel? existingChannel = ControlledSpace.Channels.Where(c => c.ID.Equals(deserializedChannel.ID)).FirstOrDefault();
+            if (existingChannel == null)
+            {
+                ControlledSpace.Channels.Add(deserializedChannel);
+            }
+            else
+            {
+                existingChannel.Name = deserializedChannel.Name;
+            }
+            db.SaveChanges();
         }
 
         private async Task DoConnectToVoipHost(byte[]? payload)
@@ -260,8 +335,8 @@ namespace Commons
             }
             else if (payload.Length == 18)
             {
-                voipAddress = new IPAddress(new ReadOnlySpan<byte>(payload, 0, 16));
-                voipPort = (ushort)(payload[16] + (payload[17] << 8));
+                voipAddress = new IPAddress(new ReadOnlySpan<byte>(payload, 0, GUID_LENGTH));
+                voipPort = (ushort)(payload[GUID_LENGTH] + (payload[GUID_LENGTH + 1] << 8));
             }
             else
             {
@@ -275,81 +350,94 @@ namespace Commons
             AudioController.StartMonitoringDecoding();
         }
 
-        private void DoAddSpace(byte[]? payload)
+        private async Task SendClients(NetworkStream tcpClient)
         {
-            if (payload == null) throw new NullReferenceException(nameof(payload));
-            string name = Encoding.UTF8.GetString(payload, 0, payload.Length);
-            Trace.WriteLine("Add space" + name);
-            space.Name = name;
-            db.SaveChanges();
-        }
+            if (ControlledSpace == null) throw new NullReferenceException(nameof(ControlledSpace));
 
-        private async Task DoGetClients(NetworkStream tcpClient)
-        {
             Trace.WriteLine("Sending clients");
-            foreach (Client client in space.Clients)
+            foreach (Client client in ControlledSpace.Clients)
             {
-                Trace.WriteLine("Sending client: " + client.Name);
                 await SendClient(client, tcpClient);
             }
         }
 
-        private void DoAddClient(byte[]? payload)
+        internal async Task SendClient(Client client, NetworkStream? tcpClient = null, NetworkStream? excludeClient = null)
+        {
+            int numClientBytes = client.Serialize(serializationBuffer);
+            await SendCommand(Command.ADD_CLIENT, new ArraySegment<byte>(serializationBuffer, 0, numClientBytes), tcpClient, excludeClient);
+        }
+
+        private void AddClient(byte[]? payload)
         {
             if (payload == null) throw new NullReferenceException(nameof(payload));
+            if (ControlledSpace == null) throw new NullReferenceException(nameof(ControlledSpace));
 
-            Guid guid = new Guid(new ReadOnlySpan<byte>(payload, 0, 16));
-            string name = Encoding.UTF8.GetString(payload, 16, payload.Length - 16);
-            Trace.WriteLine("received client: " + name);
-            Client? client = space.Clients.Where(c => c.Guid.Equals(guid)).FirstOrDefault();
-            if (client == null)
+            Client deserializedClient = new Client(payload);
+            Trace.WriteLine("received client: " + deserializedClient.Name);
+
+            Client? existingClient = ControlledSpace.Clients.Where(c => c.ID.Equals(deserializedClient.ID)).FirstOrDefault();
+            if (existingClient == null)
             {
-                Client newClient = new Client { Guid = guid, Name = name };
-                space.Clients.Add(newClient);
+                ControlledSpace.Clients.Add(deserializedClient);
             }
             else
             {
-                client.Name = name;
+                existingClient.Name = deserializedClient.Name;
             }
             db.SaveChanges();
         }
 
-        private async Task DoGetChats(NetworkStream client, byte[]? payload)
+        internal async Task RequestChats(ulong latestTime, Channel channel)
         {
-            long timestamp = BitConverter.ToInt64(payload);
-            var chats = space.Chats.Where(c => c.Timestamp > timestamp);
+            byte[] payload = new byte[GUID_LENGTH + sizeof(long)];
+            channel.ID.TryWriteBytes(payload);
+            BitConverter.TryWriteBytes(new Span<byte>(payload, GUID_LENGTH, sizeof(ulong)), latestTime);
+            await SendCommand(Command.GET_CHATS, payload);
+        }
+
+        private async Task SendChats(NetworkStream client, byte[]? payload)
+        {
+            if (payload == null) throw new NullReferenceException(nameof(payload));
+            if (ControlledSpace == null) throw new NullReferenceException(nameof(ControlledSpace));
+            if (ControlledSpace.CurrentChannel == null) throw new Exception("Trying to send chats with new current channel");
+
+            Guid channelID = new Guid(payload);
+            ulong timestamp = BitConverter.ToUInt64(payload);
+
+            Channel channel = ControlledSpace.Channels.Where(c => c.ID == channelID).First();
+
+            var chats = channel.Chats.Where(c => c.Timestamp > timestamp);
             foreach (Chat chat in chats)
             {
                 await SendChat(chat, client);
             }
         }
 
-        private async Task DoAddChat(NetworkStream tcpClient, byte[]? payload)
+        internal async Task SendChat(Chat chat, NetworkStream? tcpClient = null, NetworkStream? excludeClient = null)
+        {
+            int numChatBytes = chat.Serialize(serializationBuffer);
+            await SendCommand(Command.ADD_CHAT, new ArraySegment<byte>(serializationBuffer, 0, numChatBytes), tcpClient, excludeClient);
+        }
+
+        private async Task AddChat(NetworkStream tcpClient, byte[]? payload)
         {
             if (payload == null) throw new NullReferenceException(nameof(payload));
+            if (ControlledSpace == null) throw new NullReferenceException(nameof(ControlledSpace));
 
-            Guid clientGuid = new Guid(new ReadOnlySpan<byte>(payload, 0, 16));
-            long timestamp = BitConverter.ToInt64(payload, 16);
-            string content = Encoding.UTF8.GetString(payload, 16 + sizeof(long), payload.Length - 16 - sizeof(long));
-            Client? client = space.Clients.Where(c => c.Guid.Equals(clientGuid)).FirstOrDefault();
-            if (client == null)
-            {
-                throw new Exception("No client for chat " + clientGuid);
-            }
-            Chat newChat = new Chat {
-                ClientID = client.ID,
-                Client = client,
-                Space = space,
-                SpaceID = space.ID,
-                Content = content,
-                Timestamp = timestamp
-            };
-            client.Chats.Add(newChat);
+            Chat deserializedChat = new Chat(payload);
+
+            Client? client = ControlledSpace.Clients.Where(client => client.ID.Equals(deserializedChat.ClientID)).FirstOrDefault();
+            if (client == null) throw new Exception("No client for chat " + deserializedChat.ClientID);
+
+            Channel? channel = ControlledSpace.Channels.Where(channel => channel.ID.Equals(deserializedChat.ChannelID)).FirstOrDefault();
+            if (channel == null) throw new Exception("No channel for chat " + deserializedChat.ChannelID);
+
+            channel.Chats.Add(deserializedChat);
             db.SaveChanges();
 
             if (listener != null)
             {
-                await SendChat(newChat, null, tcpClient);
+                await SendChat(deserializedChat, null, tcpClient);
             }
         }
 

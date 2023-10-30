@@ -23,6 +23,14 @@
 
   <ItemGroup>
     <None Remove="Apple_system_icon_plus.svg" />
+    <None Remove="Fonts\gg_sans_Bold.ttf" />
+    <None Remove="Fonts\gg_sans_Bold_Italic.ttf" />
+    <None Remove="Fonts\gg_sans_Extrabold.ttf" />
+    <None Remove="Fonts\gg_sans_Medium.ttf" />
+    <None Remove="Fonts\gg_sans_Medium_Italic.ttf" />
+    <None Remove="Fonts\gg_sans_Normal.ttf" />
+    <None Remove="Fonts\gg_sans_Normal_Italic.ttf" />
+    <None Remove="Fonts\gg_sans_Semibold.ttf" />
     <None Remove="link.svg" />
   </ItemGroup>
 
@@ -44,6 +52,14 @@
 
   <ItemGroup>
     <Resource Include="Apple_system_icon_plus.svg" />
+    <Resource Include="Fonts\gg_sans_Bold.ttf" />
+    <Resource Include="Fonts\gg_sans_Bold_Italic.ttf" />
+    <Resource Include="Fonts\gg_sans_Extrabold.ttf" />
+    <Resource Include="Fonts\gg_sans_Medium.ttf" />
+    <Resource Include="Fonts\gg_sans_Medium_Italic.ttf" />
+    <Resource Include="Fonts\gg_sans_Normal.ttf" />
+    <Resource Include="Fonts\gg_sans_Normal_Italic.ttf" />
+    <Resource Include="Fonts\gg_sans_Semibold.ttf" />
     <Resource Include="link.svg" />
   </ItemGroup>
 

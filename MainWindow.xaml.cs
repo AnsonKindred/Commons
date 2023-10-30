@@ -24,11 +24,10 @@ namespace Commons
     /// </summary>
     public partial class MainWindow : Window
     {
-        private readonly CommonsContext _context = new CommonsContext();
+        private readonly CommonsContext db = new CommonsContext();
 
-        private Client? localClient;
-        internal Space? CurrentSpace { get; private set; }
         private CollectionViewSource spacesViewSource;
+        private CollectionViewSource channelsViewSource;
 
         public MainWindow()
         {
@@ -39,6 +38,7 @@ namespace Commons
 
             InitializeComponent();
             spacesViewSource = (CollectionViewSource)FindResource(nameof(spacesViewSource));
+            channelsViewSource = (CollectionViewSource)FindResource(nameof(channelsViewSource));
         }
 
         protected override void OnSourceInitialized(EventArgs e)
@@ -49,7 +49,7 @@ namespace Commons
 
         protected override void OnClosed(EventArgs e)
         {
-            foreach (var space in _context.Spaces)
+            foreach (var space in db.Spaces)
             {
                 if (space != null && space.SpaceNetworker != null)
                 {
@@ -62,64 +62,164 @@ namespace Commons
         {
             // this is for demo purposes only, to make it easier
             // to get up and running
-            _context.Database.EnsureDeleted();
-            _context.Database.EnsureCreated();
+            db.Database.EnsureDeleted();
+            db.Database.EnsureCreated();
 
-            _context.Spaces.Load();
-            _context.Chats.Load();
-            _context.Clients.Load();
+            db.Spaces.Load();
+            db.Chats.Load();
+            db.Clients.Load();
+            db.Channels.Load();
 
             // Set space list data source so it pulls from the Spaces table
-            spacesViewSource.Source = _context.Spaces.Local.ToObservableCollection();
+            spacesViewSource.Source = db.Spaces.Local.ToObservableCollection();
 
-            foreach (Space space in _context.Spaces.Where(s => s.IsLocal))
+            foreach (Space space in db.Spaces.Where(s => s.IsLocal))
             {
-                var spaceNetworker = new SpaceNetworker(_context, space);
-                await spaceNetworker.HostSpace();
+                var spaceNetworker = new SpaceNetworker(db);
+                await spaceNetworker.HostSpace(space);
             }
 
-            if (_context.Clients.Count() == 0)
+            if (db.Clients.Count() == 0)
             {
                 LoginWindow loginWindow = new LoginWindow();
                 if (loginWindow.ShowDialog().Equals(true))
                 {
-                    localClient = _context.Clients.Where(c => c.Name == loginWindow.LoginName).FirstOrDefault();
-                    if (localClient == null)
+                    db.LocalClient = db.Clients.Where(c => c.Name == loginWindow.LoginName).FirstOrDefault();
+                    if (db.LocalClient == null)
                     {
-                        localClient = new Client { Name = loginWindow.LoginName, Guid = Guid.NewGuid() };
-                        _context.Clients.Add(localClient);
-                        _context.SaveChanges();
+                        db.LocalClient = new Client { Name = loginWindow.LoginName, ID = Guid.NewGuid() };
+                        db.Clients.Add(db.LocalClient);
+                        db.SaveChanges();
                     }
                 }
             }
             else
             {
-                localClient = _context.Clients.First();
+                db.LocalClient = db.Clients.First();
             }
-            if (localClient != null && _context.Spaces.Count() != 0)
+            if (db.LocalClient != null && db.Spaces.Count() != 0)
             {
-                await SetCurrentSpace(_context.Spaces.First());
+                SetCurrentSpace(db.Spaces.First());
             }
         }
 
-        private async void SendChat(object sender, RoutedEventArgs e)
+        private async void AddSpace_Button_Click(object sender, RoutedEventArgs e)
         {
-            if (localClient == null) return;
-            if (CurrentSpace == null) return;
-            if (CurrentSpace.SpaceNetworker == null) return;
+            if (db.LocalClient == null) return;
 
-            Chat newChat = new Chat {
-                SpaceID = CurrentSpace.ID,
-                ClientID = localClient.ID,
-                Space = CurrentSpace,
-                Client = localClient,
-                Content = ((TextBox)sender).Text,
-                Timestamp = DateTime.UtcNow.Ticks
-            };
-            _context.Chats.Add(newChat);
-            _context.SaveChanges();
+            AddSpaceWindow addSpaceWindow = new AddSpaceWindow();
+            if (addSpaceWindow.ShowDialog().Equals(true))
+            {
+                Space newSpace = new Space { ID = Guid.NewGuid(), Name = addSpaceWindow.SpaceName, Address = IPAddress.Any.ToString(), Port = 0, IsLocal = true };
+                db.Spaces.Add(newSpace);
+                db.LocalClient.Spaces.Add(newSpace);
+                newSpace.Clients.Add(db.LocalClient);
+                db.SaveChanges();
 
-            await CurrentSpace.SpaceNetworker.ControlPeer.SendChat(newChat);
+                Channel newChannel = new Channel { ID = Guid.NewGuid(), Name = "General" };
+                db.Channels.Add(newChannel);
+                newSpace.Channels.Add(newChannel);
+                db.SaveChanges();
+
+                var spaceNetworker = new SpaceNetworker(db);
+                await spaceNetworker.HostSpace(newSpace);
+
+                SetCurrentSpace(newSpace);
+                await SetCurrentChannel(newChannel);
+            }
+        }
+
+        private async void LinkSpace_Button_Click(object sender, RoutedEventArgs e)
+        {
+            if (db.LocalClient == null) return;
+
+            LinkSpaceWindow linkSpaceWindow = new LinkSpaceWindow();
+            if (linkSpaceWindow.ShowDialog().Equals(true))
+            {
+                IPEndPoint spaceHostCoastToCoast = IPEndPoint.Parse(linkSpaceWindow.SpaceLink);
+
+                SpaceNetworker networker = new SpaceNetworker(db);
+                Space newSpace = await networker.ConnectToSpace(spaceHostCoastToCoast);
+                SetCurrentSpace(newSpace);
+                await SetCurrentChannel(newSpace.Channels.First());
+            }
+        }
+
+        private void SetCurrentSpace(Space space)
+        {
+            Trace.WriteLine("Setting current space: " + space.ID);
+
+            db.CurrentSpace = space;
+
+            if (db.CurrentSpace.SpaceNetworker != null)
+            {
+                AudioController.SetVoipPeer(db.CurrentSpace.SpaceNetworker.VoipPeer);
+            }
+        }
+
+        private async Task SetCurrentChannel(Channel channel)
+        {
+            if (db.CurrentSpace == null) throw new NullReferenceException(nameof(db.CurrentSpace));
+            if (db.CurrentSpace.SpaceNetworker == null) throw new NullReferenceException(nameof(db.CurrentSpace.SpaceNetworker));
+
+            Trace.WriteLine("Setting current channel: " + channel.ID);
+
+            if (db.CurrentSpace.CurrentChannel != null)
+            {
+                ((ObservableCollection<Chat>)db.CurrentSpace.CurrentChannel.Chats).CollectionChanged -= OnChatsChanged;
+            }
+            db.CurrentSpace.CurrentChannel = channel;
+
+            // Set channels list data source so it pulls from the Channels table
+            channelsViewSource.Source = db.CurrentSpace.Channels;
+
+            if (!db.CurrentSpace.IsLocal)
+            {
+                // Get the latest chat messages from the host
+                Chat? latestChat = db.CurrentSpace.CurrentChannel.Chats.MaxBy(c => c.Timestamp);
+                ulong latestTime = latestChat == null ? 0 : latestChat.Timestamp;
+                await db.CurrentSpace.SpaceNetworker.ControlPeer.RequestChats(latestTime, channel);
+            }
+
+            chatWindow.Document.Blocks.Clear();
+            foreach (Chat chat in db.CurrentSpace.CurrentChannel.Chats)
+            {
+                AddChatText(chat);
+            }
+
+            ((ObservableCollection<Chat>)db.CurrentSpace.CurrentChannel.Chats).CollectionChanged += OnChatsChanged;
+        }
+
+        private void OnChatsChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        {
+            if (e.NewItems == null) return;
+            foreach (Chat chat in e.NewItems)
+            {
+                AddChatText(chat);
+            }
+        }
+
+        private async void TextBox_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (db.CurrentSpace == null || db.CurrentSpace.CurrentChannel == null || db.LocalClient == null || db.CurrentSpace.SpaceNetworker == null) return;
+
+            if (e.Key == System.Windows.Input.Key.Enter)
+            {
+                Chat newChat = new Chat {
+                    ChannelID = db.CurrentSpace.CurrentChannel.ID,
+                    Channel = db.CurrentSpace.CurrentChannel,
+                    ClientID = db.LocalClient.ID,
+                    Client = db.LocalClient,
+                    Content = ((TextBox)sender).Text,
+                    Timestamp = (ulong)DateTime.UtcNow.Ticks
+                };
+                db.Chats.Add(newChat);
+                db.SaveChanges();
+
+                await db.CurrentSpace.SpaceNetworker.ControlPeer.SendChat(newChat);
+
+                ((TextBox)sender).Text = "";
+            }
         }
 
         private void AddChatText(Chat chat)
@@ -132,115 +232,28 @@ namespace Commons
             chatWindow.Document.Blocks.Add(newParagraph);
         }
 
-        private void TextBox_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
-        {
-            if (e.Key == System.Windows.Input.Key.Enter)
-            {
-                SendChat(sender, e);
-                ((TextBox)sender).Text = "";
-            }
-        }
-
-        private async void AddSpace_Button_Click(object sender, RoutedEventArgs e)
-        {
-            if (localClient == null) return;
-
-            AddSpaceWindow addSpaceWindow = new AddSpaceWindow();
-            if (addSpaceWindow.ShowDialog().Equals(true))
-            {
-                Space newSpace = new Space { Name = addSpaceWindow.SpaceName, Address = IPAddress.Any.ToString(), Port = 0, IsLocal = true };
-                localClient.Spaces.Add(newSpace);
-                _context.SaveChanges();
-
-                var spaceNetworker = new SpaceNetworker(_context, newSpace);
-                await spaceNetworker.HostSpace();
-
-                await SetCurrentSpace(newSpace);
-            }
-        }
-
-        private async void LinkSpace_Button_Click(object sender, RoutedEventArgs e)
-        {
-            if (localClient == null) return;
-
-            LinkSpaceWindow linkSpaceWindow = new LinkSpaceWindow();
-            if (linkSpaceWindow.ShowDialog().Equals(true))
-            {
-                IPEndPoint endpoint = IPEndPoint.Parse(linkSpaceWindow.SpaceLink);
-                Space newSpace = new Space { Name = "Connecting...", Address = endpoint.Address.ToString(), Port = endpoint.Port, IsLocal = false };
-                localClient.Spaces.Add(newSpace);
-                _context.SaveChanges();
-                await SetCurrentSpace(newSpace);
-            }
-        }
-
-        private async Task SetCurrentSpace(Space space)
-        {
-            if (localClient == null) return;
-
-            Trace.WriteLine("Setting current space: " + space.ID);
-            if (CurrentSpace != null)
-            {
-                ((ObservableCollection<Chat>)CurrentSpace.Chats).CollectionChanged -= OnChatsChanged;
-            }
-            chatWindow.Document.Blocks.Clear();
-            CurrentSpace = space;
-            foreach (Chat chat in CurrentSpace.Chats)
-            {
-                AddChatText(chat);
-            }
-
-            ((ObservableCollection<Chat>)CurrentSpace.Chats).CollectionChanged += OnChatsChanged;
-
-            if (!CurrentSpace.IsLocal)
-            {
-                SpaceNetworker? networker = CurrentSpace.SpaceNetworker;
-                if (networker == null)
-                {
-                    networker = new SpaceNetworker(_context, CurrentSpace);
-                    await networker.JoinSpace();
-                }
-
-                await networker.ControlPeer.SendClient(localClient);
-                await networker.ControlPeer.SendCommand(ControlPeer.Command.GET_CLIENTS);
-
-                Chat? latestChat = CurrentSpace.Chats.MaxBy(c => c.Timestamp);
-                long latestTime = latestChat == null ? 0 : latestChat.Timestamp;
-                await networker.ControlPeer.SendCommand(ControlPeer.Command.GET_CHATS, BitConverter.GetBytes(latestTime));
-            }
-
-            if (CurrentSpace.SpaceNetworker != null)
-            {
-                AudioController.SetVoipPeer(CurrentSpace.SpaceNetworker.VoipPeer);
-            }
-        }
-
-        private void OnChatsChanged(object? sender, NotifyCollectionChangedEventArgs e)
-        {
-            if (e.NewItems == null) return;
-            foreach (Chat chat in e.NewItems)
-            {
-                AddChatText(chat);
-            }
-        }
-
-        private async void DataGrid_CurrentCellChanged(object sender, SelectedCellsChangedEventArgs e)
+        private void DataGrid_CurrentCellChanged(object sender, SelectedCellsChangedEventArgs e)
         {
             //Get the newly selected cells
             IList<DataGridCellInfo> selectedCells = e.AddedCells;
             if (selectedCells.Count() != 0)
             {
-                await SetCurrentSpace((Space)selectedCells[0].Item);
+                SetCurrentSpace((Space)selectedCells[0].Item);
             }
         }
 
         private void Invite_Clicked(object sender, EventArgs e)
         {
-            if (CurrentSpace == null) return;
+            if (db.CurrentSpace == null) return;
 
             InviteToSpaceWindow inviteToSpaceWindow = new InviteToSpaceWindow();
-            inviteToSpaceWindow.SpaceLink = CurrentSpace.Address + ":" + CurrentSpace.Port;
+            inviteToSpaceWindow.SpaceLink = db.CurrentSpace.Address + ":" + db.CurrentSpace.Port;
             inviteToSpaceWindow.ShowDialog();
+        }
+
+        private void OnChannelSelectionChanged(object sender, EventArgs e)
+        {
+
         }
 
         private async void ProcessLatencyLogs(object sender, RoutedEventArgs e)

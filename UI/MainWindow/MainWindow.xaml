@@ -1,0 +1,29 @@
+﻿<Window x:Class="Commons.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:commons="clr-namespace:Commons.UI" mc:Ignorable="d"
+        Title="Commons" 
+        Style="{StaticResource MainWindowStyle}"
+        Loaded="Window_Loaded">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Styles/MainWindowStyle.xaml"></ResourceDictionary>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+    <Grid x:Name="MainArea" Style="{StaticResource MainAreaStyle}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="96" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <commons:SpaceListArea x:Name="SpaceListPanel" Grid.Column="0" Grid.Row="0" Style="{StaticResource SpaceListAreaStyle}" />
+        <Border Style="{StaticResource ChannelsAndChatAreaCurvedBorderStyle}" x:Name="ChannelsAndChatAreaCurvedBorder" Grid.Column="1" Grid.Row="0">
+            <Grid ShowGridLines="False" x:Name="ChannelsAndChatArea">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="315" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <commons:ChannelGroupsList x:Name="ChannelGroupsPanel" Grid.Column="0" Style="{StaticResource ChannelGroupsListStyle}"/>
+                <commons:ChatArea x:Name="ChatAreaPanel" Grid.Column="1" Style="{StaticResource ChatAreaStyle}" />
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

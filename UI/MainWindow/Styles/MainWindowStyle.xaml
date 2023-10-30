@@ -1,0 +1,25 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Style x:Key="MainAreaStyle" TargetType="Grid">
+        <Setter Property="ShowGridLines" Value="False" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+    </Style>
+    <Style x:Key="SpaceListAreaStyle" TargetType="Grid">
+        <Setter Property="Margin" Value="0,12,0,0" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+    </Style>
+    <Style x:Key="ChannelsAndChatAreaCurvedBorderStyle" TargetType="Border">
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="VerticalAlignment" Value="Stretch" />
+        <Setter Property="BorderBrush" Value="{DynamicResource DarkestBackgroundColor}" />
+        <Setter Property="CornerRadius" Value="10,0,0,0" />
+        <Setter Property="Background" Value="{DynamicResource DarkerBackgroundColor}" />
+    </Style>
+    <Style x:Key="ChannelGroupsListStyle" TargetType="Grid">
+        <Setter Property="ShowGridLines" Value="False" />
+        <Setter Property="Margin" Value="3,10,0,0" />
+    </Style>
+    <Style x:Key="ChatAreaStyle" TargetType="Grid">
+        <Setter Property="Margin" Value="0,0,0,2" />
+        <Setter Property="Background" Value="{DynamicResource DarkBackgroundColor}" />
+    </Style>
+</ResourceDictionary>

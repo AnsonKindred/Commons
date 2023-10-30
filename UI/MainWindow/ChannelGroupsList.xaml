@@ -1,0 +1,56 @@
+﻿<Grid x:Class="Commons.UI.ChannelGroupsList" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" mc:Ignorable="d" 
+      d:DesignHeight="450" 
+      d:DesignWidth="315">
+    <Grid.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Styles/ChannelGroupsListStyle.xaml"></ResourceDictionary>
+                <ResourceDictionary Source="Templates/TextChannelEntryTemplate.xaml"></ResourceDictionary>
+                <ResourceDictionary Source="Templates/VoiceChannelEntryTemplate.xaml"></ResourceDictionary>
+            </ResourceDictionary.MergedDictionaries>
+            <CollectionViewSource x:Key="channelsViewSource"/>
+        </ResourceDictionary>
+    </Grid.Resources>
+    <Grid.RowDefinitions>
+        <RowDefinition Height="25" />
+        <RowDefinition Height="*" />
+        <RowDefinition Height="25" />
+        <RowDefinition Height="*" />
+    </Grid.RowDefinitions>
+    <Button x:Name="CollapseTextChannelsButton" Style="{StaticResource CollapseButtonStyle}" Grid.Row="0">
+        <Grid ShowGridLines="False" HorizontalAlignment="Stretch">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="20" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Style="{StaticResource CollapseArrowStyle}" Grid.Column="0" Text="🢓" />
+            <TextBlock Style="{StaticResource ChannelGroupHeaderStyle}" Grid.Column="1" Text="TEXT CHANNELS" />
+        </Grid>
+    </Button>
+    <Button x:Name="AddTextChannelButton" Style="{StaticResource AddChannelButtonStyle}" Grid.Row="0">
+        <TextBlock Style="{StaticResource AddChannelButtonTextStyle}" Text="+" />
+    </Button>
+    <DataGrid x:Name="TextChannelList" Grid.Row="1" Style="{StaticResource ChannelListStyle}" RowStyle="{StaticResource ChannelListRowStyle}" CellStyle="{StaticResource ChannelListCellStyle}" SelectedCellsChanged="OnChannelSelectionChanged" ItemsSource="{Binding Source={StaticResource channelsViewSource}, UpdateSourceTrigger=PropertyChanged}">
+        <DataGrid.Columns>
+            <DataGridTemplateColumn x:Name="TextChannelEntryTemplate" CellTemplate="{StaticResource TextChannelEntryTemplate}" />
+        </DataGrid.Columns>
+    </DataGrid>
+    <Button x:Name="CollapseVoiceChannelsButton" Style="{StaticResource CollapseButtonStyle}" Grid.Row="2">
+        <Grid ShowGridLines="False" HorizontalAlignment="Stretch">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="20" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Style="{StaticResource CollapseArrowStyle}" Grid.Column="0" Text="🢓" />
+            <TextBlock Style="{StaticResource ChannelGroupHeaderStyle}" Grid.Column="1" Text="VOICE CHANNELS" />
+        </Grid>
+    </Button>
+    <Button x:Name="AddVoiceChannelButton" Style="{StaticResource AddChannelButtonStyle}" Grid.Row="2">
+        <TextBlock Style="{StaticResource AddChannelButtonTextStyle}" Text="+" />
+    </Button>
+    <DataGrid x:Name="VoiceChannelList" Grid.Row="3" Style="{StaticResource ChannelListStyle}" RowStyle="{StaticResource ChannelListRowStyle}" CellStyle="{StaticResource ChannelListCellStyle}" ItemsSource="{Binding Source={StaticResource channelsViewSource}, UpdateSourceTrigger=PropertyChanged}" SelectedCellsChanged="OnChannelSelectionChanged">
+        <DataGrid.Columns>
+            <DataGridTemplateColumn x:Name="VoiceChannelEntryTemplate" CellTemplate="{StaticResource VoiceChannelEntryTemplate}" />
+        </DataGrid.Columns>
+    </DataGrid>
+</Grid>

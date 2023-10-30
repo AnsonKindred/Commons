@@ -1,20 +1,24 @@
 ﻿<Application x:Class="Commons.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
-             StartupUri="UI/MainWindow.xaml">
+             StartupUri="UI/MainWindow/MainWindow.xaml">
     <Application.Resources>
-        
-        <SolidColorBrush x:Key="DarkestBackgroundColor" Color="#ff202020"/>
-        <SolidColorBrush x:Key="DarkerBackgroundColor" Color="#FF2b2d31"/>
-        <SolidColorBrush x:Key="DarkBackgroundColor" Color="#FF313338"/>
-        <SolidColorBrush x:Key="DefaultTextColor" Color="#FFDFE0E9"/>
-        <SolidColorBrush x:Key="DefaultTextboxColor" Color="#FF3A3A41"/>
-        <SolidColorBrush x:Key="MutedTextColor" Color="#FF80848e"/>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="UI/MainWindow/Styles/AppStyle.xaml"></ResourceDictionary>
+            </ResourceDictionary.MergedDictionaries>
+            <SolidColorBrush x:Key="DarkestBackgroundColor" Color="#ff202020"/>
+            <SolidColorBrush x:Key="DarkerBackgroundColor" Color="#FF2b2d31"/>
+            <SolidColorBrush x:Key="DarkBackgroundColor" Color="#FF313338"/>
+            <SolidColorBrush x:Key="DefaultTextColor" Color="#FFDFE0E9"/>
+            <SolidColorBrush x:Key="DefaultTextboxColor" Color="#FF3A3A41"/>
+            <SolidColorBrush x:Key="MutedTextColor" Color="#FF80848e"/>
 
-        <FontFamily x:Key="gg-sans-font-normal" >/Fonts/#gg_sans_Normal</FontFamily>
-        <FontFamily x:Key="gg-sans-font-bold" >/Fonts/#gg_sans_Bold</FontFamily>
-        <FontFamily x:Key="gg-sans-font-medium" >/Fonts/#gg_sans_Medium</FontFamily>
-        <FontFamily x:Key="gg-sans-font-semibold" >/Fonts/#gg_sans_Semibold</FontFamily>
-        
+            <FontFamily x:Key="gg-sans-font-normal" >/Fonts/#gg_sans_Normal</FontFamily>
+            <FontFamily x:Key="gg-sans-font-bold" >/Fonts/#gg_sans_Bold</FontFamily>
+            <FontFamily x:Key="gg-sans-font-medium" >/Fonts/#gg_sans_Medium</FontFamily>
+            <FontFamily x:Key="gg-sans-font-semibold" >/Fonts/#gg_sans_Semibold</FontFamily>
+        </ResourceDictionary>
+
     </Application.Resources>
 </Application>

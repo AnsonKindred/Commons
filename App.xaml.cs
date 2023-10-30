@@ -17,5 +17,7 @@ namespace Commons
             bool value = true;
             DwmSetWindowAttribute(new WindowInteropHelper(window).Handle, 20, ref value, Marshal.SizeOf(value));
         }
+
+        public readonly CommonsContext DB = new CommonsContext();
     }
 }

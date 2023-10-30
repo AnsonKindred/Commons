@@ -1,18 +1,16 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:commons="clr-namespace:Commons">
-    <DataTemplate x:Key="ServerListEntryTemplate">
+    <DataTemplate x:Key="SpaceListEntryTemplate">
         <DataTemplate.Resources>
             <ResourceDictionary>
                 <ResourceDictionary.MergedDictionaries>
                     <ResourceDictionary Source="../Styles/SpaceListEntryStyle.xaml"></ResourceDictionary>
-                    <ResourceDictionary>
-                        <commons:SpaceNameConverter x:Key="serverNameConverter" />
-                    </ResourceDictionary>
                 </ResourceDictionary.MergedDictionaries>
+                <commons:SpaceNameConverter x:Key="spaceNameConverter" />
             </ResourceDictionary>
         </DataTemplate.Resources>
         <Border Style="{StaticResource RoundedBorderStyle}">
             <Button Style="{StaticResource ButtonStyle}">
-                <TextBlock Style="{StaticResource TextStyle}" Text="{Binding Name, Converter={StaticResource serverNameConverter}}" />
+                <TextBlock Style="{StaticResource TextStyle}" Text="{Binding Name, Converter={StaticResource spaceNameConverter}}" />
             </Button>
         </Border>
     </DataTemplate>

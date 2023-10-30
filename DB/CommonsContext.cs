@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Commons
 {
-    class CommonsContext : DbContext
+    public class CommonsContext : DbContext
     {
         public DbSet<Chat> Chats { get; set; }
         public DbSet<Client> Clients { get; set; }

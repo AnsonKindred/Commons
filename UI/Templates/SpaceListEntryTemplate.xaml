@@ -3,7 +3,7 @@
         <DataTemplate.Resources>
             <ResourceDictionary>
                 <ResourceDictionary.MergedDictionaries>
-                    <ResourceDictionary Source="SpaceListEntryStyle.xaml"></ResourceDictionary>
+                    <ResourceDictionary Source="../Styles/SpaceListEntryStyle.xaml"></ResourceDictionary>
                     <ResourceDictionary>
                         <commons:SpaceNameConverter x:Key="serverNameConverter" />
                     </ResourceDictionary>

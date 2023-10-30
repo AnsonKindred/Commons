@@ -15,5 +15,6 @@
         <FontFamily x:Key="gg-sans-font-bold" >/Fonts/#gg_sans_Bold</FontFamily>
         <FontFamily x:Key="gg-sans-font-medium" >/Fonts/#gg_sans_Medium</FontFamily>
         <FontFamily x:Key="gg-sans-font-semibold" >/Fonts/#gg_sans_Semibold</FontFamily>
+        
     </Application.Resources>
 </Application>

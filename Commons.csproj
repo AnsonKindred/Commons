@@ -64,10 +64,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="InviteToServerWindow.xaml.cs">
+    <Compile Update="UI\InviteToServerWindow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="LinkServerWindow.xaml.cs">
+    <Compile Update="UI\LinkServerWindow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="AddServerWindow.xaml.cs">

@@ -4,13 +4,13 @@ using System;
 
 namespace Commons
 {
-    public class ServerNameConverter : IValueConverter
+    public class SpaceNameConverter : IValueConverter
     {
         public object Convert(Object value, Type targetType, object parameter, CultureInfo culture)
         {
-            string serverName = (string)value;
-            serverName = serverName.ToUpper();
-            return serverName[0];
+            string spaceName = (string)value;
+            spaceName = spaceName.ToUpper();
+            return spaceName[0];
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

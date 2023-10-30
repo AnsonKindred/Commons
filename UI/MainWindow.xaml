@@ -3,7 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:svgc="http://sharpvectors.codeplex.com/svgc/"
+        xmlns:svgc="http://sharpvectors.codeplex.com/svgc/" 
+        xmlns:commons="clr-namespace:Commons"
         mc:Ignorable="d"
         Name="Commons"
         Title="Commons" 
@@ -16,26 +17,39 @@
         Foreground="Black" 
         BorderBrush="Black">
     <Window.Resources>
-        <CollectionViewSource x:Key="spacesViewSource"/>
-        <CollectionViewSource x:Key="channelsViewSource"/>
-        <Style x:Key="ChatParagraph"  TargetType="Paragraph">
-            <Setter Property="Foreground" Value="{DynamicResource DefaultTextColor}" />
-            <Setter Property="FontFamily" Value="{DynamicResource gg-sans-font-normal}" />
-            <Setter Property="FontSize" Value="18" />
-            <Setter Property="Margin" Value="0,5,0,5" />
-            <Setter Property="Padding" Value="0,0,0,0" />
-        </Style>
-        <FontFamily x:Key="gg-sans-font-normal" >/Fonts/#gg_sans_Normal</FontFamily>
-        <FontFamily x:Key="gg-sans-font-bold" >/Fonts/#gg_sans_Bold</FontFamily>
-        <FontFamily x:Key="gg-sans-font-medium" >/Fonts/#gg_sans_Medium</FontFamily>
-        <FontFamily x:Key="gg-sans-font-semibold" >/Fonts/#gg_sans_Semibold</FontFamily>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="SpaceListEntryTemplate.xaml"></ResourceDictionary>
+                <ResourceDictionary>
+                    <CollectionViewSource x:Key="spacesViewSource"/>
+                    <CollectionViewSource x:Key="channelsViewSource"/>
+                    <Style x:Key="ChatParagraph"  TargetType="Paragraph">
+                        <Setter Property="Foreground" Value="{DynamicResource DefaultTextColor}" />
+                        <Setter Property="FontFamily" Value="{DynamicResource gg-sans-font-normal}" />
+                        <Setter Property="FontSize" Value="18" />
+                        <Setter Property="Margin" Value="0,5,0,5" />
+                        <Setter Property="Padding" Value="0,0,0,0" />
+                    </Style>
+
+                    <Style x:Key="MainAreaStyle" TargetType="Grid">
+                        <Setter Property="ShowGridLines" Value="False" />
+                        <Setter Property="HorizontalAlignment" Value="Stretch" />
+                    </Style>
+
+                    <Style x:Key="SpaceListStyle" TargetType="Grid">
+                        <Setter Property="Margin" Value="0,12,0,0" />
+                        <Setter Property="HorizontalAlignment" Value="Stretch" />
+                    </Style>
+                </ResourceDictionary>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
     </Window.Resources>
-    <Grid x:Name="MainArea" ShowGridLines="False" HorizontalAlignment="Stretch">
+    <Grid x:Name="MainArea" Style="{StaticResource MainAreaStyle}">
         <Grid.ColumnDefinitions>
             <ColumnDefinition  Width="96"/>
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
-        <Grid x:Name="SpaceListArea" HorizontalAlignment="Stretch" Grid.Column="0" Grid.Row="0" Margin="0,12,0,0">
+        <Grid x:Name="SpaceListArea" Style="{StaticResource SpaceListStyle}" Grid.Column="0" Grid.Row="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
@@ -43,46 +57,6 @@
                 <RowDefinition />
                 <RowDefinition Height="60"/>
             </Grid.RowDefinitions>
-            <Grid.Resources>
-                <DataTemplate x:Key="ServerListEntryTemplate">
-                    <Border BorderBrush="{StaticResource DefaultTextColor}" BorderThickness="3">
-                        <Border.Style>
-                            <Style>
-                                <Style.Triggers>
-                                    <Trigger Property="UIElement.IsMouseOver" Value="True">
-                                        <Setter Property="Border.CornerRadius" Value="15"/>
-                                    </Trigger>
-                                    <Trigger Property="UIElement.IsMouseOver" Value="False">
-                                        <Setter Property="Border.CornerRadius" Value="30"/>
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Border.Style>
-                        <Button HorizontalAlignment="Center" Background="Transparent" Width="60" Height="60" BorderBrush="{x:Null}" VerticalContentAlignment="Center">
-                            <Button.Style>
-                                <Style TargetType="{x:Type Button}">
-                                    <Setter Property="Background" Value="Transparent"/>
-                                    <Setter Property="Template">
-                                        <Setter.Value>
-                                            <ControlTemplate TargetType="{x:Type Button}">
-                                                <Border Background="{TemplateBinding Background}" BorderBrush="Transparent" BorderThickness="0">
-                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                </Border>
-                                            </ControlTemplate>
-                                        </Setter.Value>
-                                    </Setter>
-                                    <Style.Triggers>
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter Property="Background" Value="Transparent"/>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Button.Style>
-                            <TextBlock Text="{Binding Name, Converter={StaticResource serverNameConverter}}" Background="{x:Null}" Foreground="{DynamicResource DefaultTextColor}" FontSize="24" VerticalAlignment="Center" />
-                        </Button>
-                    </Border>
-                </DataTemplate>
-            </Grid.Resources>
             <DataGrid Grid.Column="0" Grid.Row="0" HorizontalContentAlignment="Center" x:Name="SpaceList" ItemsSource="{Binding Source={StaticResource spacesViewSource}, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,55" HeadersVisibility="None" Background="Transparent" BorderBrush="Transparent" AutoGenerateColumns="False" GridLinesVisibility="None" IsSynchronizedWithCurrentItem="True" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" SelectionMode="Single" SelectionUnit="Cell" CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False" RowDetailsVisibilityMode="Collapsed" SelectedCellsChanged="DataGrid_CurrentCellChanged">
                 <DataGrid.ContextMenu>
                     <ContextMenu>

@@ -21,9 +21,9 @@
         </Grid.ColumnDefinitions>
         <Label Content="Name" Background="{x:Null}" Foreground="{DynamicResource DefaultTextColor}" Padding="0,0,0,0" HorizontalAlignment="Left" Margin="0,27,0,0" Height="23" VerticalAlignment="Top"/>
         <Border BorderThickness="1,1,1,1" VerticalAlignment="Top" Height="30" Margin="0,50,0,0" Background="{DynamicResource DefaultTextboxColor}" CornerRadius="4,4,4,4">
-            <TextBox x:Name="loginTextBox" TextWrapping="Wrap" Margin="0,0,-2,0" Background="{x:Null}" BorderBrush="{x:Null}" CaretBrush="#FFDFE0E9" Foreground="{DynamicResource DefaultTextColor}"/>
+            <TextBox x:Name="loginTextBox" TextWrapping="Wrap" Margin="0,0,-2,0" Background="{x:Null}" BorderBrush="{x:Null}" CaretBrush="#FFDFE0E9" Foreground="{DynamicResource DefaultTextColor}" KeyUp="OnTextBoxKeyUp"/>
         </Border>
-        <Button Content="OK" Width="100" VerticalAlignment="Bottom" HorizontalAlignment="Right" Height="35" IsDefault="True" Click="OK_Click"/>
+        <Button x:Name="OkButton" Content="OK" Width="100" VerticalAlignment="Bottom" HorizontalAlignment="Right" Height="35" IsDefault="True" Click="OK_Click" IsEnabled="False"/>
         <Button Content="Cancel" IsCancel="True" HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="100" Height="35" Click="Cancel_Click"/>
 
     </Grid>

@@ -29,5 +29,10 @@ namespace Commons
             DialogResult = false;
             this.Close();
         }
+
+        private void OnTextBoxKeyUp(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            OkButton.IsEnabled = loginTextBox.Text.Length != 0;
+        }
     }
 }

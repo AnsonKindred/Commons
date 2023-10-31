@@ -95,27 +95,14 @@ namespace Commons
             }
         }
 
-        private async void LinkSpace_Button_Click(object sender, RoutedEventArgs e)
-        {
-            if (db.LocalClient == null) return;
-
-            LinkSpaceWindow linkSpaceWindow = new LinkSpaceWindow();
-            if (linkSpaceWindow.ShowDialog().Equals(true))
-            {
-                IPEndPoint spaceHostCoastToCoast = IPEndPoint.Parse(linkSpaceWindow.SpaceLink);
-
-                SpaceNetworker networker = new SpaceNetworker(db);
-                Space newSpace = await networker.ConnectToSpace(spaceHostCoastToCoast);
-                SetCurrentSpace(newSpace);
-                await SetCurrentChannel(newSpace.Channels.First());
-            }
-        }
-
         public void SetCurrentSpace(Space space)
         {
             Trace.WriteLine("Setting current space: " + space.ID);
 
             db.CurrentSpace = space;
+
+            // Set channels list data source so it pulls from the Channels table
+            ChannelGroupsPanel.ChannelsViewSource.Source = db.CurrentSpace.Channels;
 
             if (db.CurrentSpace.SpaceNetworker != null)
             {
@@ -135,9 +122,6 @@ namespace Commons
                 ((ObservableCollection<Chat>)db.CurrentSpace.CurrentChannel.Chats).CollectionChanged -= OnChatsChanged;
             }
             db.CurrentSpace.CurrentChannel = channel;
-
-            // Set channels list data source so it pulls from the Channels table
-            ChannelGroupsPanel.ChannelsViewSource.Source = db.CurrentSpace.Channels;
 
             if (!db.CurrentSpace.IsLocal)
             {
@@ -172,15 +156,6 @@ namespace Commons
             Paragraph newParagraph = new Paragraph(newRun);
             newParagraph.Style = (Style)ChatAreaPanel.Resources["ChatParagraph"];
             ChatAreaPanel.ChatWindow.Document.Blocks.Add(newParagraph);
-        }
-
-        private void Invite_Clicked(object sender, EventArgs e)
-        {
-            if (db.CurrentSpace == null) return;
-
-            InviteToSpaceWindow inviteToSpaceWindow = new InviteToSpaceWindow();
-            inviteToSpaceWindow.SpaceLink = db.CurrentSpace.Address + ":" + db.CurrentSpace.Port;
-            inviteToSpaceWindow.ShowDialog();
         }
 
         private async void ProcessLatencyLogs(object sender, RoutedEventArgs e)

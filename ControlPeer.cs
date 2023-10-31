@@ -88,6 +88,7 @@ namespace Commons
             await SendSpace(client);
             await SendClients(client);
             await SendChannels(client);
+            Trace.WriteLine("Client connected, sending IS READY");
             await SendClientIsReady(client);
             // Send voip endpoint
             ///await SendVoipEndpoint(client);
@@ -95,19 +96,27 @@ namespace Commons
 
         internal override async Task<IPTuple?> Connect(IPEndPoint remoteEndPoint)
         {
+            if (db == null) return null;
+            if (db.LocalClient == null) return null;
+
             hostRelayEndpoint = remoteEndPoint;
             localClient = new TcpClient(new IPEndPoint(IPAddress.Any, 0));
-            
+
+            noblePeer.SetLocalEndPoint((IPEndPoint)localClient.Client.LocalEndPoint);
+
             IPTuple? bridgeEndPoints = await base.Connect(hostRelayEndpoint);
             
             if (bridgeEndPoints == null) throw new Exception("Bad bridges");
 
             localClient.Connect(bridgeEndPoints.Item1);
+
             ReceiveFromClient(localClient);
 
             joinSpaceTaskCompletionSource = new TaskCompletionSource();
-
             await joinSpaceTaskCompletionSource.Task;
+
+            Trace.WriteLine("Connected, please send client thank you jesus");
+            await SendClient(db.LocalClient);
 
             return bridgeEndPoints;
         }
@@ -178,14 +187,17 @@ namespace Commons
 
         internal async Task SendCommand(Command command, ArraySegment<byte> payload, NetworkStream? tcpClient = null, NetworkStream? excludeClient = null)
         {
+            Trace.WriteLine("Sending command " + command);
             if (tcpClient == null)
             {
                 if (listener == null && localClient != null)
                 {
+                    Trace.WriteLine("Sending command A" + command);
                     await SendCommandToStream(command, localClient.GetStream(), payload);
                 }
                 else if (listener != null)
                 {
+                    Trace.WriteLine("Sending command B" + command);
                     foreach (var client in connectedClients)
                     {
                         if (client == excludeClient) continue;
@@ -195,6 +207,7 @@ namespace Commons
             }
             else
             {
+                Trace.WriteLine("Sending command C" + command);
                 await SendCommandToStream(command, tcpClient, payload);
             }
         }
@@ -235,7 +248,7 @@ namespace Commons
 
         async Task SendClientIsReady(NetworkStream client)
         {
-            await SendCommand(Command.CLIENT_IS_READY, null, client);
+            await SendCommand(Command.CLIENT_IS_READY, client);
         }
 
         void SetClientReady()
@@ -260,6 +273,7 @@ namespace Commons
             if (hostRelayEndpoint == null) throw new NullReferenceException(nameof(hostRelayEndpoint));
 
             Space newSpace = new Space(payload);
+            db.Spaces.Add(newSpace);
             db.LocalClient.Spaces.Add(newSpace);
             db.SaveChanges();
             newSpace.SpaceNetworker = spaceNetworker;
@@ -312,6 +326,7 @@ namespace Commons
             Channel? existingChannel = ControlledSpace.Channels.Where(c => c.ID.Equals(deserializedChannel.ID)).FirstOrDefault();
             if (existingChannel == null)
             {
+                db.Channels.Add(deserializedChannel);
                 ControlledSpace.Channels.Add(deserializedChannel);
             }
             else
@@ -378,6 +393,7 @@ namespace Commons
             Client? existingClient = ControlledSpace.Clients.Where(c => c.ID.Equals(deserializedClient.ID)).FirstOrDefault();
             if (existingClient == null)
             {
+                db.Clients.Add(deserializedClient);
                 ControlledSpace.Clients.Add(deserializedClient);
             }
             else
@@ -401,7 +417,7 @@ namespace Commons
             if (ControlledSpace == null) throw new NullReferenceException(nameof(ControlledSpace));
             if (ControlledSpace.CurrentChannel == null) throw new Exception("Trying to send chats with new current channel");
 
-            Guid channelID = new Guid(payload);
+            Guid channelID = new Guid(new Span<byte>(payload, 0, GUID_LENGTH));
             ulong timestamp = BitConverter.ToUInt64(payload);
 
             Channel channel = ControlledSpace.Channels.Where(c => c.ID == channelID).First();
@@ -432,6 +448,7 @@ namespace Commons
             Channel? channel = ControlledSpace.Channels.Where(channel => channel.ID.Equals(deserializedChat.ChannelID)).FirstOrDefault();
             if (channel == null) throw new Exception("No channel for chat " + deserializedChat.ChannelID);
 
+            db.Chats.Add(deserializedChat);
             channel.Chats.Add(deserializedChat);
             db.SaveChanges();
 

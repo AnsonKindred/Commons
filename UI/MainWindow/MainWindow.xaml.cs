@@ -67,6 +67,8 @@ namespace Commons
                 await spaceNetworker.HostSpace(space);
             }
 
+            await Task.Delay(1);
+
             if (db.Clients.Count() == 0)
             {
                 LoginWindow loginWindow = new LoginWindow();

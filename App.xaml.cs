@@ -7,6 +7,8 @@ namespace Commons
 {
     public partial class App : Application
     {
+        const int DWMWA_TRANSITIONS_FORCEDISABLED = 3;
+
         // Dark magic used to get dark mode title bar on the window.
         [DllImport("dwmapi.dll", PreserveSig = true)]
         public static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref bool attrValue, int attrSize);
@@ -16,8 +18,28 @@ namespace Commons
         {
             bool value = true;
             DwmSetWindowAttribute(new WindowInteropHelper(window).Handle, 20, ref value, Marshal.SizeOf(value));
+            DwmSetWindowAttribute(new WindowInteropHelper(window).Handle, DWMWA_TRANSITIONS_FORCEDISABLED, ref value, Marshal.SizeOf(value));
         }
 
         public readonly CommonsContext DB = new CommonsContext();
+
+        internal App()
+        {
+        }
+
+        protected override void OnStartup(StartupEventArgs e)
+        {
+            Window mainWindow = new MainWindow();
+            MainWindow.WindowState = WindowState.Minimized;
+            mainWindow.Loaded += MainWindow_Loaded;
+            mainWindow.Show();
+        }
+
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            ((Window)sender).WindowState = WindowState.Normal;
+            bool value = false;
+            DwmSetWindowAttribute(new WindowInteropHelper(((Window)sender)).Handle, DWMWA_TRANSITIONS_FORCEDISABLED, ref value, Marshal.SizeOf(value));
+        }
     }
 }

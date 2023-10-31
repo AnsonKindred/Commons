@@ -1,21 +1,17 @@
-﻿<Grid x:Class="Commons.UI.ChatArea" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" mc:Ignorable="d" 
+﻿<DockPanel x:Class="Commons.UI.ChatArea" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" mc:Ignorable="d" 
       d:DesignHeight="450" 
       d:DesignWidth="450">
-    <Grid.Resources>
+    <DockPanel.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Styles/ChatAreaStyle.xaml"></ResourceDictionary>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
-    </Grid.Resources>
-    <Grid.RowDefinitions>
-        <RowDefinition Height="*" />
-        <RowDefinition Height="40" />
-    </Grid.RowDefinitions>
-    <FlowDocumentScrollViewer x:Name="ChatWindow" Grid.Row="0" Style="{StaticResource ChatDisplayAreaStyle}">
-        <FlowDocument />
-    </FlowDocumentScrollViewer>
-    <Border x:Name="ChatBoxBorder" Grid.Row="1" Style="{StaticResource ChatInputBoxBorderStyle}">
+    </DockPanel.Resources>
+    <Border x:Name="ChatBoxBorder" DockPanel.Dock="Bottom" Style="{StaticResource ChatInputBoxBorderStyle}">
         <TextBox x:Name="ChatBox" Style="{StaticResource ChatInputBoxStyle}" PreviewKeyUp="TextBox_KeyUp"/>
     </Border>
-</Grid>
+    <FlowDocumentScrollViewer x:Name="ChatWindow" Style="{StaticResource ChatDisplayAreaStyle}">
+        <FlowDocument />
+    </FlowDocumentScrollViewer>
+</DockPanel>

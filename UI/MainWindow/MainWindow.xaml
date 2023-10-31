@@ -2,6 +2,7 @@
         Title="Commons" 
         Style="{StaticResource MainWindowStyle}"
         Loaded="Window_Loaded">
+    
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -9,21 +10,15 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>
-    <Grid x:Name="MainArea" Style="{StaticResource MainAreaStyle}">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="96" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
-        <commons:SpaceListArea x:Name="SpaceListPanel" Grid.Column="0" Grid.Row="0" Style="{StaticResource SpaceListAreaStyle}" />
-        <Border Style="{StaticResource ChannelsAndChatAreaCurvedBorderStyle}" x:Name="ChannelsAndChatAreaCurvedBorder" Grid.Column="1" Grid.Row="0">
-            <Grid ShowGridLines="False" x:Name="ChannelsAndChatArea">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="315" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <commons:ChannelGroupsList x:Name="ChannelGroupsPanel" Grid.Column="0" Style="{StaticResource ChannelGroupsListStyle}"/>
-                <commons:ChatArea x:Name="ChatAreaPanel" Grid.Column="1" Style="{StaticResource ChatAreaStyle}" />
-            </Grid>
+    
+    <DockPanel x:Name="MainArea" Style="{StaticResource MainAreaStyle}">
+        <commons:SpaceListArea DockPanel.Dock="Left" x:Name="SpaceListPanel" Style="{StaticResource SpaceListAreaStyle}" />
+        <Border Style="{StaticResource ChannelsAndChatAreaCurvedBorderStyle}" x:Name="ChannelsAndChatAreaCurvedBorder">
+            <DockPanel x:Name="ChannelsAndChatArea">
+                <commons:ChannelGroupsList  x:Name="ChannelGroupsPanel" DockPanel.Dock="Left" Style="{StaticResource ChannelGroupsListStyle}"/>
+                <commons:ChatArea x:Name="ChatAreaPanel" Style="{StaticResource ChatAreaStyle}" />
+            </DockPanel>
         </Border>
-    </Grid>
+    </DockPanel>
+    
 </Window>

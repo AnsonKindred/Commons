@@ -8,7 +8,7 @@ using System.Windows.Data;
 
 namespace Commons.UI
 {
-    public partial class SpaceListArea : Grid
+    public partial class SpaceListArea : DockPanel
     {
         CommonsContext db => ((App)Application.Current).DB;
         MainWindow mainWindow => (MainWindow)Application.Current.MainWindow;

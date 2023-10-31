@@ -5,6 +5,7 @@
         <Setter Property="BorderThickness" Value="0, 0, 0, 2" />
         <Setter Property="HorizontalAlignment" Value="Stretch" />
         <Setter Property="Width" Value="auto" />
+        <Setter Property="Height" Value="61" />
         <Setter Property="Margin" Value="0,0,0,25"/>
     </Style>
     <Style x:Key="SpaceNameTextStyle" TargetType="TextBlock">

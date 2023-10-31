@@ -17,8 +17,8 @@
             <DataGridTemplateColumn CellTemplate="{StaticResource SpaceListEntryTemplate}" />
         </DataGrid.Columns>
     </DataGrid>
-    <Button Style="{StaticResource AddSpaceButtonStyle}" x:Name="AddSpaceButton" DockPanel.Dock="Bottom" Click="AddSpace_Button_Click">
-        <Image x:Name="AddSpaceButtonImage" Source="{svgc:SvgImage AppName=Commons, Source=/Apple_system_icon_plus.svg}"/>
+    <Button x:Name="AddSpaceButton" DockPanel.Dock="Top" Style="{StaticResource AddSpaceButtonStyle}" Click="AddSpace_Button_Click">
+        <TextBlock x:Name="AddSpaceButtonText" Style="{StaticResource AddSpaceButtonTextStyle}" Text="+"/>
     </Button>
     
 </DockPanel>

@@ -12,7 +12,7 @@
         </ResourceDictionary>
     </DockPanel.Resources>
     <Border DockPanel.Dock="Top" Style="{StaticResource SpaceNameBorderStyle}">
-        <TextBlock x:Name="SpaceNameText" Style="{StaticResource SpaceNameTextStyle}" Text="Noble Whale Studios" />
+        <TextBlock x:Name="SpaceNameText" Style="{StaticResource SpaceNameTextStyle}" Text="{Binding CurrentSpace.Name}" />
     </Border>
     <StackPanel DockPanel.Dock="Top" Style="{StaticResource CollapseHeaderPanel}">
         <Button x:Name="CollapseTextChannelsButton" Style="{StaticResource CollapseButtonStyle}">
@@ -21,7 +21,7 @@
                 <TextBlock Style="{StaticResource ChannelGroupHeaderStyle}" Text="TEXT CHANNELS" />
             </StackPanel>
         </Button>
-        <Button x:Name="AddTextChannelButton" Style="{StaticResource AddChannelButtonStyle}">
+        <Button x:Name="AddTextChannelButton" Style="{StaticResource AddChannelButtonStyle}" Click="OnAddTextChannelClicked">
             <TextBlock Style="{StaticResource AddChannelButtonTextStyle}" Text="+" />
         </Button>
     </StackPanel>

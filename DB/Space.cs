@@ -25,7 +25,9 @@ namespace Commons
         public virtual ICollection<Client> Clients { get; set; } = new ObservableCollection<Client>();
 
         [NotMapped]
-        public Channel? CurrentChannel { get; set; }
+        private Channel? _CurrentChannel = null;
+        [NotMapped]
+        public Channel? CurrentChannel { get => _CurrentChannel; set => Set(ref _CurrentChannel, value); }
 
         [NotMapped]
         internal SpaceNetworker? SpaceNetworker { get; set; }

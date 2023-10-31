@@ -8,6 +8,9 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </DockPanel.Resources>
+    <Border DockPanel.Dock="Top" Style="{StaticResource ChannelNameBorderStyle}">
+        <TextBlock x:Name="SpaceNameText" Style="{StaticResource ChannelNameTextStyle}" Text="{Binding CurrentChannel.Name}" />
+    </Border>
     <Border x:Name="ChatBoxBorder" DockPanel.Dock="Bottom" Style="{StaticResource ChatInputBoxBorderStyle}">
         <TextBox x:Name="ChatBox" Style="{StaticResource ChatInputBoxStyle}" PreviewKeyUp="TextBox_KeyUp"/>
     </Border>

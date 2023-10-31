@@ -70,7 +70,7 @@ namespace Commons
             if (db.Clients.Count() == 0)
             {
                 LoginWindow loginWindow = new LoginWindow();
-                if (loginWindow.ShowDialog().Equals(true))
+                if (loginWindow.ShowDialog() == true)
                 {
                     db.LocalClient = db.Clients.Where(c => c.Name == loginWindow.LoginName).FirstOrDefault();
                     if (db.LocalClient == null)
@@ -79,6 +79,10 @@ namespace Commons
                         db.Clients.Add(db.LocalClient);
                         db.SaveChanges();
                     }
+                }
+                else
+                {
+                    Application.Current.Shutdown();
                 }
             }
             else

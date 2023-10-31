@@ -15,7 +15,7 @@
         <commons:SpaceListArea DockPanel.Dock="Left" x:Name="SpaceListPanel" Style="{StaticResource SpaceListAreaStyle}" />
         <Border Style="{StaticResource ChannelsAndChatAreaCurvedBorderStyle}" x:Name="ChannelsAndChatAreaCurvedBorder">
             <DockPanel x:Name="ChannelsAndChatArea">
-                <commons:ChannelGroupsList  x:Name="ChannelGroupsPanel" DockPanel.Dock="Left" Style="{StaticResource ChannelGroupsListStyle}"/>
+                <commons:ChannelGroupsList x:Name="ChannelGroupsPanel" DockPanel.Dock="Left" Style="{StaticResource ChannelGroupsListStyle}"/>
                 <commons:ChatArea x:Name="ChatAreaPanel" Style="{StaticResource ChatAreaStyle}" />
             </DockPanel>
         </Border>

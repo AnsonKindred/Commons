@@ -67,6 +67,9 @@
     <Compile Update="UI\InviteToServerWindow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="UI\AddChannelWindow.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="UI\LinkServerWindow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>

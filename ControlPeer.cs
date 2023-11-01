@@ -327,7 +327,6 @@ namespace Commons
             if (existingChannel == null)
             {
                 db.Channels.Add(deserializedChannel);
-                ControlledSpace.Channels.Add(deserializedChannel);
             }
             else
             {
@@ -448,9 +447,13 @@ namespace Commons
             Channel? channel = ControlledSpace.Channels.Where(channel => channel.ID.Equals(deserializedChat.ChannelID)).FirstOrDefault();
             if (channel == null) throw new Exception("No channel for chat " + deserializedChat.ChannelID);
 
+            deserializedChat.Client = client;
+            deserializedChat.Channel = channel;
+
             db.Chats.Add(deserializedChat);
-            channel.Chats.Add(deserializedChat);
+            //channel.Chats.Add(deserializedChat);
             db.SaveChanges();
+            //db.Entry(channel).Reload();
 
             if (listener != null)
             {

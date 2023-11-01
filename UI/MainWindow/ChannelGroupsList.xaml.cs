@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -41,6 +42,7 @@ namespace Commons.UI
             AddChannelWindow addChannelWindow = new AddChannelWindow();
             if (addChannelWindow.ShowDialog() == true)
             {
+                Trace.WriteLine("Adding channel for button press!!!!!!!!!!!!!");
                 Channel newChannel = new Channel { ID = Guid.NewGuid(), Name = addChannelWindow.ChannelName };
                 db.Channels.Add(newChannel);
                 db.CurrentSpace.Channels.Add(newChannel);

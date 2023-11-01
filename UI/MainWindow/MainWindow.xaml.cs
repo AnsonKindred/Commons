@@ -121,7 +121,7 @@ namespace Commons
 
             if (db.CurrentSpace.CurrentChannel != null)
             {
-                ((ObservableCollection<Chat>)db.CurrentSpace.CurrentChannel.Chats).CollectionChanged -= OnChatsChanged;
+                db.CurrentSpace.CurrentChannel.Chats.CollectionChanged -= OnChatsChanged;
             }
             db.CurrentSpace.CurrentChannel = channel;
 
@@ -138,7 +138,7 @@ namespace Commons
                 AddChatText(chat);
             }
 
-            ((ObservableCollection<Chat>)db.CurrentSpace.CurrentChannel.Chats).CollectionChanged += OnChatsChanged;
+            db.CurrentSpace.CurrentChannel.Chats.CollectionChanged += OnChatsChanged;
         }
 
         private void OnChatsChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -152,7 +152,7 @@ namespace Commons
 
         private void AddChatText(Chat chat)
         {
-            if (chat.Client == null) return;
+            if (chat.Client == null) throw new NullReferenceException(nameof(chat.Client));
 
             Run newRun = new Run(chat.Client.Name + ": " + chat.Content);
             Paragraph newParagraph = new Paragraph(newRun);

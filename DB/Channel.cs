@@ -22,7 +22,7 @@ namespace Commons
         private string _Name = "";
         public string Name { get => _Name; set => Set(ref _Name, value); }
 
-        public virtual ICollection<Chat> Chats { get; set; } = new ObservableCollection<Chat>();
+        public virtual ObservableCollection<Chat> Chats { get; set; } = new ObservableCollection<Chat>();
 
         public Channel() : base() { }
         public Channel(byte[] buffer) : base(buffer) { }

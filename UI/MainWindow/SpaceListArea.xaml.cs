@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Windows;
@@ -38,6 +39,7 @@ namespace Commons.UI
                     newSpace.Clients.Add(db.LocalClient);
                     db.SaveChanges();
 
+                    Trace.WriteLine("Adding channel for new space!!!!!!!!!!");
                     Channel newChannel = new Channel { ID = Guid.NewGuid(), Name = "General" };
                     db.Channels.Add(newChannel);
                     newSpace.Channels.Add(newChannel);

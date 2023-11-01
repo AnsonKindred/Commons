@@ -8,11 +8,12 @@
                 <ResourceDictionary Source="Templates/TextChannelEntryTemplate.xaml"></ResourceDictionary>
                 <ResourceDictionary Source="Templates/VoiceChannelEntryTemplate.xaml"></ResourceDictionary>
             </ResourceDictionary.MergedDictionaries>
-            <CollectionViewSource x:Key="channelsViewSource"/>
+            <CollectionViewSource x:Key="voiceChannelsViewSource" Source="{Binding Channels, Mode=OneWay}" Filter="VoiceChannelFilter" />
+            <CollectionViewSource x:Key="textChannelsViewSource" Source="{Binding Channels, Mode=OneWay}" Filter="TextChannelFilter" />
         </ResourceDictionary>
     </DockPanel.Resources>
     <Border DockPanel.Dock="Top" Style="{StaticResource SpaceNameBorderStyle}">
-        <TextBlock x:Name="SpaceNameText" Style="{StaticResource SpaceNameTextStyle}" Text="{Binding CurrentSpace.Name}" />
+        <TextBlock x:Name="SpaceNameText" Style="{StaticResource SpaceNameTextStyle}" Text="{Binding Name}" />
     </Border>
     <StackPanel DockPanel.Dock="Top" Style="{StaticResource CollapseHeaderPanel}">
         <Button x:Name="CollapseTextChannelsButton" Style="{StaticResource CollapseButtonStyle}">
@@ -25,7 +26,7 @@
             <TextBlock Style="{StaticResource AddChannelButtonTextStyle}" Text="+" />
         </Button>
     </StackPanel>
-    <DataGrid DockPanel.Dock="Top" x:Name="TextChannelList" Style="{StaticResource ChannelListStyle}" RowStyle="{StaticResource ChannelListRowStyle}" CellStyle="{StaticResource ChannelListCellStyle}" SelectedCellsChanged="OnChannelSelectionChanged" ItemsSource="{Binding Source={StaticResource channelsViewSource}, UpdateSourceTrigger=PropertyChanged}">
+    <DataGrid DockPanel.Dock="Top" x:Name="TextChannelList" Style="{StaticResource ChannelListStyle}" RowStyle="{StaticResource ChannelListRowStyle}" CellStyle="{StaticResource ChannelListCellStyle}" SelectedCellsChanged="OnChannelSelectionChanged" ItemsSource="{Binding Source={StaticResource textChannelsViewSource}, UpdateSourceTrigger=PropertyChanged}">
         <DataGrid.Columns>
             <DataGridTemplateColumn x:Name="TextChannelEntryTemplate" CellTemplate="{StaticResource TextChannelEntryTemplate}" />
         </DataGrid.Columns>
@@ -37,11 +38,11 @@
                 <TextBlock Style="{StaticResource ChannelGroupHeaderStyle}" Text="VOICE CHANNELS" />
             </StackPanel>
         </Button>
-        <Button x:Name="AddVoiceChannelButton" Style="{StaticResource AddChannelButtonStyle}">
+        <Button x:Name="AddVoiceChannelButton" Style="{StaticResource AddChannelButtonStyle}" Click="OnAddVoiceChannelClicked">
             <TextBlock Style="{StaticResource AddChannelButtonTextStyle}" Text="+" />
         </Button>
     </StackPanel>
-    <DataGrid DockPanel.Dock="Top" x:Name="VoiceChannelList" Style="{StaticResource ChannelListStyle}" RowStyle="{StaticResource ChannelListRowStyle}" CellStyle="{StaticResource ChannelListCellStyle}" ItemsSource="{Binding Source={StaticResource channelsViewSource}, UpdateSourceTrigger=PropertyChanged}" SelectedCellsChanged="OnChannelSelectionChanged">
+    <DataGrid DockPanel.Dock="Top" x:Name="VoiceChannelList" Style="{StaticResource ChannelListStyle}" RowStyle="{StaticResource ChannelListRowStyle}" CellStyle="{StaticResource ChannelListCellStyle}" ItemsSource="{Binding Source={StaticResource voiceChannelsViewSource}, UpdateSourceTrigger=Explicit}" SelectedCellsChanged="OnChannelSelectionChanged">
         <DataGrid.Columns>
             <DataGridTemplateColumn x:Name="VoiceChannelEntryTemplate" CellTemplate="{StaticResource VoiceChannelEntryTemplate}" />
         </DataGrid.Columns>

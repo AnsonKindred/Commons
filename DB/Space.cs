@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
 using System.Text;
 using Commons.DB;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace Commons
 {
@@ -21,8 +25,8 @@ namespace Commons
         public int Port { get; set; }
         public bool IsLocal { get; set; }
 
-        public virtual ICollection<Channel> Channels { get; set; } = new ObservableCollection<Channel>();
-        public virtual ICollection<Client> Clients { get; set; } = new ObservableCollection<Client>();
+        public virtual ObservableCollection<Channel> Channels { get; set; } = new ObservableCollection<Channel>();
+        public virtual ObservableCollection<Client> Clients { get; set; } = new ObservableCollection<Client>();
 
         [NotMapped]
         private Channel? _CurrentChannel = null;

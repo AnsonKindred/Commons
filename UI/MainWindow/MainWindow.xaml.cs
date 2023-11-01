@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Data;
 using System.Windows.Documents;
 using Commons.Audio;
 using Microsoft.EntityFrameworkCore;
@@ -102,9 +104,7 @@ namespace Commons
             Trace.WriteLine("Setting current space: " + space.ID);
 
             db.CurrentSpace = space;
-
-            // Set channels list data source so it pulls from the Channels table
-            ChannelGroupsPanel.ChannelsViewSource.Source = db.CurrentSpace.Channels;
+            ChannelGroupsPanel.DataContext = db.CurrentSpace;
 
             if (db.CurrentSpace.SpaceNetworker != null)
             {

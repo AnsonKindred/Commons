@@ -451,9 +451,7 @@ namespace Commons
             deserializedChat.Channel = channel;
 
             db.Chats.Add(deserializedChat);
-            //channel.Chats.Add(deserializedChat);
             db.SaveChanges();
-            //db.Entry(channel).Reload();
 
             if (listener != null)
             {

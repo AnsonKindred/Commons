@@ -14,13 +14,14 @@ namespace Commons.UI
         CommonsContext? db => DesignerProperties.GetIsInDesignMode(this) ? null : ((App)Application.Current).DB;
         MainWindow mainWindow => (MainWindow)Application.Current.MainWindow;
 
-        public CollectionViewSource ChannelsViewSource { get; internal set; }
+        public CollectionViewSource TextChannelsViewSource { get; internal set; }
+        public CollectionViewSource VoiceChannelsViewSource { get; internal set; }
 
         public ChannelGroupsList()
         {
             InitializeComponent();
-            this.DataContext = db;
-            ChannelsViewSource = (CollectionViewSource)Resources["channelsViewSource"];
+            TextChannelsViewSource = (CollectionViewSource)Resources["textChannelsViewSource"];
+            VoiceChannelsViewSource = (CollectionViewSource)Resources["voiceChannelsViewSource"];
         }
 
         private async void OnChannelSelectionChanged(object sender, SelectedCellsChangedEventArgs e)
@@ -32,7 +33,10 @@ namespace Commons.UI
             }
         }
 
-        private async void OnAddTextChannelClicked(object sender, RoutedEventArgs e)
+        private void OnAddTextChannelClicked(object sender, RoutedEventArgs e) => OnAddChannelClicked(false);
+        private void OnAddVoiceChannelClicked(object sender, RoutedEventArgs e) => OnAddChannelClicked(true);
+
+        private async void OnAddChannelClicked(bool isVoice)
         {
             if (db == null) return;
 
@@ -42,16 +46,42 @@ namespace Commons.UI
             AddChannelWindow addChannelWindow = new AddChannelWindow();
             if (addChannelWindow.ShowDialog() == true)
             {
-                Trace.WriteLine("Adding channel for button press!!!!!!!!!!!!!");
-                Channel newChannel = new Channel { ID = Guid.NewGuid(), Name = addChannelWindow.ChannelName };
+                Channel newChannel = new Channel { ID = Guid.NewGuid(), Name = addChannelWindow.ChannelName, IsVoiceChannel = isVoice, SpaceID = db.CurrentSpace.ID, Space = db.CurrentSpace };
                 db.Channels.Add(newChannel);
-                db.CurrentSpace.Channels.Add(newChannel);
                 db.SaveChanges();
 
                 await db.CurrentSpace.SpaceNetworker.ControlPeer.SendChannel(newChannel);
 
                 await mainWindow.SetCurrentChannel(newChannel);
+
+                VoiceChannelsViewSource.View.Refresh();
             }
+        }
+
+        private void TextChannelFilter(object sender, FilterEventArgs e)
+        {
+            Channel? channel = e.Item as Channel;
+            if (channel == null)
+            {
+                e.Accepted = false;
+                return;
+            }
+
+            e.Accepted = !channel.IsVoiceChannel;
+            return;
+        }
+
+        private void VoiceChannelFilter(object sender, FilterEventArgs e)
+        {
+            Channel? channel = e.Item as Channel;
+            if (channel == null)
+            {
+                e.Accepted = false;
+                return;
+            }
+
+            e.Accepted = channel.IsVoiceChannel;
+            return;
         }
     }
 }

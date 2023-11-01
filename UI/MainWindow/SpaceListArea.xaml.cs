@@ -36,13 +36,12 @@ namespace Commons.UI
                     Space newSpace = new Space { ID = Guid.NewGuid(), Name = addSpaceWindow.Text, Address = IPAddress.Any.ToString(), Port = 0, IsLocal = true };
                     db.Spaces.Add(newSpace);
                     db.LocalClient.Spaces.Add(newSpace);
-                    newSpace.Clients.Add(db.LocalClient);
+                    //newSpace.Clients.Add(db.LocalClient);
                     db.SaveChanges();
 
                     Trace.WriteLine("Adding channel for new space!!!!!!!!!!");
-                    Channel newChannel = new Channel { ID = Guid.NewGuid(), Name = "General" };
+                    Channel newChannel = new Channel { ID = Guid.NewGuid(), Name = "General", SpaceID = newSpace.ID, Space = newSpace, IsVoiceChannel = false };
                     db.Channels.Add(newChannel);
-                    newSpace.Channels.Add(newChannel);
                     db.SaveChanges();
 
                     var spaceNetworker = new SpaceNetworker(db);

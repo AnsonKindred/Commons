@@ -22,6 +22,8 @@ namespace Commons
         private string _Name = "";
         public string Name { get => _Name; set => Set(ref _Name, value); }
 
+        public bool IsVoiceChannel { get; set; } = false;
+
         public virtual ObservableCollection<Chat> Chats { get; set; } = new ObservableCollection<Chat>();
 
         public Channel() : base() { }
@@ -36,6 +38,8 @@ namespace Commons
             offset += GUID_LENGTH;
             SpaceID.TryWriteBytes(new Span<byte>(data, offset, GUID_LENGTH));
             offset += GUID_LENGTH;
+            data[offset] = (byte)(IsVoiceChannel ? 1 : 0);
+            offset += 1;
             int numNameBytes = Encoding.UTF8.GetBytes(Name, 0, Name.Length, data, offset);
             offset += numNameBytes;
 
@@ -49,6 +53,8 @@ namespace Commons
 
             SpaceID = new Guid(new Span<byte>(data, offset, GUID_LENGTH));
             offset += GUID_LENGTH;
+
+            IsVoiceChannel = data[offset] == 1;
 
             Name = Encoding.UTF8.GetString(data, offset, data.Length - offset);
             offset += data.Length - offset;

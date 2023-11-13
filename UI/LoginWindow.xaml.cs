@@ -15,7 +15,11 @@ namespace Commons
             this.Owner = Application.Current.MainWindow;
         }
 
-        private void Window_SourceInitialized(object sender, System.EventArgs e) => App.SetWindowDarkMode((Window)sender);
+        private void Window_SourceInitialized(object sender, System.EventArgs e)
+        {
+            IconHelper.RemoveIcon(this);
+            App.SetWindowDarkMode((Window)sender);
+        }
 
         private void OK_Click(object sender, RoutedEventArgs e)
         {

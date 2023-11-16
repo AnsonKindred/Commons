@@ -12,6 +12,7 @@ using System.Windows;
 using System.Windows.Data;
 using System.Windows.Documents;
 using Commons.Audio;
+using Commons.UI;
 using Microsoft.EntityFrameworkCore;
 using NobleConnect;
 
@@ -82,6 +83,7 @@ namespace Commons
                         db.LocalClient = new Client { Name = loginWindow.LoginName, ID = Guid.NewGuid() };
                         db.Clients.Add(db.LocalClient);
                         db.SaveChanges();
+                        ChannelGroupsPanel.MiniAccountPanel.DataContext = db.LocalClient;
                     }
                 }
                 else

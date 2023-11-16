@@ -17,8 +17,6 @@ namespace Commons.UI
         public ChannelGroupsList()
         {
             InitializeComponent();
-            
-            if (db == null) throw new NullReferenceException(nameof(db));
         }
 
         private async void OnChannelSelectionChanged(object sender, SelectedCellsChangedEventArgs e)
@@ -50,8 +48,6 @@ namespace Commons.UI
                 await db.CurrentSpace.SpaceNetworker.ControlPeer.SendChannel(newChannel);
 
                 await mainWindow.SetCurrentChannel(newChannel);
-
-                //VoiceChannelsViewSource.View.Refresh();
             }
         }
 

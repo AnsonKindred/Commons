@@ -67,4 +67,9 @@
             </Trigger>
         </Style.Triggers>
     </Style>
+
+    <Style x:Key="MiniAccountPanel" TargetType="StackPanel">
+        <Setter Property="Background" Value="{DynamicResource OtherDarkBackgroundColor}"  />
+        <Setter Property="VerticalAlignment" Value="Bottom" />
+    </Style>
 </ResourceDictionary>

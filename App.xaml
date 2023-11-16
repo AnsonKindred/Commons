@@ -12,6 +12,7 @@
             <SolidColorBrush x:Key="DarkestBackgroundColor" Color="#ff202020"/>
             <SolidColorBrush x:Key="DarkerBackgroundColor" Color="#FF2b2d31"/>
             <SolidColorBrush x:Key="DarkBackgroundColor" Color="#FF313338"/>
+            <SolidColorBrush x:Key="OtherDarkBackgroundColor" Color="#FF232428"/>
             <SolidColorBrush x:Key="DefaultTextColor" Color="#FFDFE0E9"/>
             <SolidColorBrush x:Key="DefaultTextboxColor" Color="#FF383a40"/>
             <SolidColorBrush x:Key="MutedTextColor" Color="#FF80848e"/>

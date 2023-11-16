@@ -15,6 +15,7 @@
             <SolidColorBrush x:Key="DefaultTextColor" Color="#FFDFE0E9"/>
             <SolidColorBrush x:Key="DefaultTextboxColor" Color="#FF383a40"/>
             <SolidColorBrush x:Key="MutedTextColor" Color="#FF80848e"/>
+            <SolidColorBrush x:Key="PlaceholderTextColor" Color="#FF61626b"/>
 
             <FontFamily x:Key="DefaultFont" >/Fonts/#gg_sans_Normal</FontFamily>
             <FontFamily x:Key="DefaultFont-Bold" >/Fonts/#gg_sans_Bold</FontFamily>

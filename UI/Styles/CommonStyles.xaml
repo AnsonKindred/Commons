@@ -3,21 +3,21 @@
     <Style x:Key="DefaultTextBoxBorder" TargetType="Border">
         <Setter Property="BorderThickness" Value="1,1,1,1" />
         <Setter Property="Background" Value="{DynamicResource DefaultTextboxColor}" />
-        <Setter Property="CornerRadius" Value="4,4,4,4" />
+        <Setter Property="CornerRadius" Value="10,10,10,10" />
         <Setter Property="Height" Value="60" />
     </Style>
 
     <Style x:Key="FancyPlaceholderText" TargetType="TextBlock">
-        <Setter Property="Foreground" Value="{DynamicResource MutedTextColor}" />
+        <Setter Property="Foreground" Value="{DynamicResource PlaceholderTextColor}" />
         <Setter Property="IsHitTestVisible" Value="False" />
         <Setter Property="Padding" Value="20,18,0,0" />
-        <Setter Property="FontSize" Value="21" />
+        <Setter Property="FontSize" Value="20" />
         <Setter Property="FontFamily" Value="{DynamicResource DefaultFont}" />
         <Setter Property="Height" Value="60" />
     </Style>
 
     <Style x:Key="DefaultTextBox" TargetType="TextBox">
-        <Setter Property="FontSize" Value="21" />
+        <Setter Property="FontSize" Value="20" />
         <Setter Property="FontFamily" Value="{DynamicResource DefaultFont}" />
         <Setter Property="Padding" Value="17,17,0,0" />
         <Setter Property="Background" Value="Transparent" />

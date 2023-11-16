@@ -14,14 +14,11 @@ namespace Commons.UI
         CommonsContext? db => DesignerProperties.GetIsInDesignMode(this) ? null : ((App)Application.Current).DB;
         MainWindow mainWindow => (MainWindow)Application.Current.MainWindow;
 
-        public CollectionViewSource TextChannelsViewSource { get; internal set; }
-        public CollectionViewSource VoiceChannelsViewSource { get; internal set; }
-
         public ChannelGroupsList()
         {
             InitializeComponent();
-            TextChannelsViewSource = (CollectionViewSource)Resources["textChannelsViewSource"];
-            VoiceChannelsViewSource = (CollectionViewSource)Resources["voiceChannelsViewSource"];
+            
+            if (db == null) throw new NullReferenceException(nameof(db));
         }
 
         private async void OnChannelSelectionChanged(object sender, SelectedCellsChangedEventArgs e)
@@ -54,7 +51,7 @@ namespace Commons.UI
 
                 await mainWindow.SetCurrentChannel(newChannel);
 
-                VoiceChannelsViewSource.View.Refresh();
+                //VoiceChannelsViewSource.View.Refresh();
             }
         }
 

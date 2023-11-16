@@ -16,20 +16,24 @@ namespace Commons
             this.Owner = Application.Current.MainWindow;
         }
 
-        private void Window_SourceInitialized(object sender, System.EventArgs e) => App.SetWindowDarkMode((Window)sender);
+        private void Window_SourceInitialized(object sender, System.EventArgs e)
+        {
+            IconHelper.RemoveIcon(this);
+            App.SetWindowDarkMode((Window)sender);
+        }
 
         private void OnAddServerButtonClick(object sender, RoutedEventArgs e)
         {
-            if (AddSpaceNameTextBox.Text != "")
+            if (NewSpaceTextBox.Text != "")
             {
                 IsAddServer = true;
-                Text = AddSpaceNameTextBox.Text;
+                Text = NewSpaceTextBox.Text;
                 DialogResult = true;
             }
-            else if (JoinSpaceDefaultText.Text != "")
+            else if (JoinSpaceTextBox.Text != "")
             {
                 IsAddServer = false;
-                Text = JoinSpaceNameTextBox.Text;
+                Text = JoinSpaceTextBox.Text;
                 DialogResult = true;
             }
             else
@@ -43,32 +47,6 @@ namespace Commons
         {
             DialogResult = false;
             this.Close();
-        }
-
-        private void JoinSpaceNameTextBox_GotFocus(object sender, RoutedEventArgs e)
-        {
-            JoinSpaceDefaultText.Visibility = Visibility.Hidden;
-        }
-
-        private void JoinSpaceNameTextBox_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (JoinSpaceNameTextBox.Text == "")
-            {
-                JoinSpaceDefaultText.Visibility = Visibility.Visible;
-            }
-        }
-
-        private void AddSpaceNameTextBox_GotFocus(object sender, RoutedEventArgs e)
-        {
-            AddSpaceDefaultText.Visibility = Visibility.Hidden;
-        }
-
-        private void AddSpaceNameTextBox_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (AddSpaceNameTextBox.Text == "")
-            {
-                AddSpaceDefaultText.Visibility = Visibility.Visible;
-            }
         }
     }
 }

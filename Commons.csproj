@@ -64,16 +64,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="UI\InviteToServerWindow.xaml.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Update="UI\AddChannelWindow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="UI\LinkServerWindow.xaml.cs">
+    <Compile Update="UI\AddServerWindow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="UI\AddServerWindow.xaml.cs">
+    <Compile Update="UI\FancyTextBox.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="UI\MainWindow\ChatArea.xaml.cs">

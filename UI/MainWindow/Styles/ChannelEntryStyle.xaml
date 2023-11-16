@@ -13,7 +13,7 @@
         <Setter Property="Background" Value="Transparent"  />
         <Setter Property="Foreground" Value="{DynamicResource MutedTextColor}" />
         <Setter Property="FontSize" Value="32"  />
-        <Setter Property="FontFamily" Value="{StaticResource gg-sans-font-bold}" />
+        <Setter Property="FontFamily" Value="{StaticResource DefaultFont-Bold}" />
         <Setter Property="VerticalAlignment" Value="Bottom" />
     </Style>
     <Style x:Key="VoiceChannelSymbolStyle" TargetType="TextBlock">
@@ -22,7 +22,7 @@
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Foreground" Value="{DynamicResource MutedTextColor}" />
         <Setter Property="FontSize" Value="28" />
-        <Setter Property="FontFamily" Value="{StaticResource gg-sans-font-bold}" />
+        <Setter Property="FontFamily" Value="{StaticResource DefaultFont-Bold}" />
         <Setter Property="VerticalAlignment" Value="Bottom"/>
     </Style>
     <Style x:Key="ChannelTextStyle" TargetType="TextBlock">

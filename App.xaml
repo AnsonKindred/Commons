@@ -3,9 +3,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" >
     <Application.Resources>
         <ResourceDictionary>
+            
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="UI/MainWindow/Styles/AppStyle.xaml"></ResourceDictionary>
+                <ResourceDictionary Source="UI/Styles/AppStyle.xaml"></ResourceDictionary>
+                <ResourceDictionary Source="UI/Styles/CommonStyles.xaml"></ResourceDictionary>
             </ResourceDictionary.MergedDictionaries>
+            
             <SolidColorBrush x:Key="DarkestBackgroundColor" Color="#ff202020"/>
             <SolidColorBrush x:Key="DarkerBackgroundColor" Color="#FF2b2d31"/>
             <SolidColorBrush x:Key="DarkBackgroundColor" Color="#FF313338"/>
@@ -13,11 +16,9 @@
             <SolidColorBrush x:Key="DefaultTextboxColor" Color="#FF383a40"/>
             <SolidColorBrush x:Key="MutedTextColor" Color="#FF80848e"/>
 
-            <FontFamily x:Key="gg-sans-font-normal" >/Fonts/#gg_sans_Normal</FontFamily>
-            <FontFamily x:Key="gg-sans-font-bold" >/Fonts/#gg_sans_Bold</FontFamily>
-            <FontFamily x:Key="gg-sans-font-medium" >/Fonts/#gg_sans_Medium</FontFamily>
-            <FontFamily x:Key="gg-sans-font-semibold" >/Fonts/#gg_sans_Semibold</FontFamily>
+            <FontFamily x:Key="DefaultFont" >/Fonts/#gg_sans_Normal</FontFamily>
+            <FontFamily x:Key="DefaultFont-Bold" >/Fonts/#gg_sans_Bold</FontFamily>
+            
         </ResourceDictionary>
-
     </Application.Resources>
 </Application>

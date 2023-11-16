@@ -3,7 +3,7 @@
         <ResourceDictionary Source="DialogWindowStyle.xaml"></ResourceDictionary>
     </ResourceDictionary.MergedDictionaries>
 
-    <Style x:Key="NameTextBoxBorder" TargetType="Border" BasedOn="{StaticResource DefaultTextBoxBorder}">
+    <Style x:Key="ServerLinkTextBoxBorder" TargetType="Border" BasedOn="{StaticResource DefaultTextBoxBorder}">
         <Setter Property="VerticalAlignment" Value="Top" />
         <Setter Property="Margin" Value="0,60,0,0" />
     </Style>

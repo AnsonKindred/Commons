@@ -8,11 +8,14 @@ namespace Commons
     public partial class LoginWindow : Window
     {
         public string LoginName { get; private set; } = "";
+        public string Password { get; private set; } = "";
+        public bool IsLoggingIn = false;
 
         public LoginWindow()
         {
             InitializeComponent();
             this.Owner = Application.Current.MainWindow;
+            this.DataContext = this;
         }
 
         private void Window_SourceInitialized(object sender, System.EventArgs e)
@@ -21,14 +24,25 @@ namespace Commons
             App.SetWindowDarkMode((Window)sender);
         }
 
-        private void OK_Click(object sender, RoutedEventArgs e)
+        private void OnLoginClick(object sender, RoutedEventArgs e)
         {
-            LoginName = loginTextBox.Text;
+            IsLoggingIn = true;
+            LoginName = loginTextBox.TextBox.Text;
+            Password = passwordTextBox.TextBox.Text;
             DialogResult = true;
             this.Close();
         }
 
-        private void Cancel_Click(object sender, RoutedEventArgs e)
+        private void OnCreateAccountClick(object sender, RoutedEventArgs e)
+        {
+            IsLoggingIn = false;
+            LoginName = loginTextBox.TextBox.Text;
+            Password = passwordTextBox.TextBox.Text;
+            DialogResult = true;
+            this.Close();
+        }
+
+        private void OnCancelClick(object sender, RoutedEventArgs e)
         {
             DialogResult = false;
             this.Close();
@@ -36,7 +50,8 @@ namespace Commons
 
         private void OnTextBoxKeyUp(object sender, System.Windows.Input.KeyEventArgs e)
         {
-            OkButton.IsEnabled = loginTextBox.Text.Length != 0;
+            LoginButton.IsEnabled = loginTextBox.TextBox.Text.Length != 0 && passwordTextBox.TextBox.Text.Length != 0;
+            CreateAccountButton.IsEnabled = LoginButton.IsEnabled;
         }
     }
 }

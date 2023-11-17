@@ -1,18 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Data;
 using System.Windows.Documents;
 using Commons.Audio;
-using Commons.UI;
 using Microsoft.EntityFrameworkCore;
 using NobleConnect;
 
@@ -53,7 +48,7 @@ namespace Commons
         {
             // this is for demo purposes only, to make it easier
             // to get up and running
-            db.Database.EnsureDeleted();
+            //db.Database.EnsureDeleted();
             db.Database.EnsureCreated();
 
             db.Spaces.Load();
@@ -72,29 +67,50 @@ namespace Commons
 
             await Task.Delay(1);
 
-            if (db.Clients.Count() == 0)
+            LoginWindow loginWindow = new LoginWindow();
+            bool isLoginSuccess = false;
+            if (loginWindow.ShowDialog() == true)
             {
-                LoginWindow loginWindow = new LoginWindow();
-                if (loginWindow.ShowDialog() == true)
+                Client? clientWithMatchingUsername = db.Clients.Where(c => c.Name == loginWindow.LoginName).FirstOrDefault();
+                if (loginWindow.IsLoggingIn)
                 {
-                    db.LocalClient = db.Clients.Where(c => c.Name == loginWindow.LoginName).FirstOrDefault();
-                    if (db.LocalClient == null)
+                    if (clientWithMatchingUsername != null && clientWithMatchingUsername.PasswordHash != null)
                     {
-                        db.LocalClient = new Client { Name = loginWindow.LoginName, ID = Guid.NewGuid() };
-                        db.Clients.Add(db.LocalClient);
-                        db.SaveChanges();
-                        ChannelGroupsPanel.MiniAccountPanel.DataContext = db.LocalClient;
+                        if (clientWithMatchingUsername.ValidatePassword(loginWindow.Password))
+                        {
+                            db.LocalClient = clientWithMatchingUsername;
+                            db.LocalClient.DecryptPrivateKey(loginWindow.Password);
+                            isLoginSuccess = true;
+                        }
+                    }
+                    else
+                    {
+                        // TODO: Some sort of warning about incorrect password
                     }
                 }
                 else
                 {
-                    Application.Current.Shutdown();
+                    if (clientWithMatchingUsername == null)
+                    {
+                        db.LocalClient = new Client { Name = loginWindow.LoginName, ID = Guid.NewGuid() };
+                        db.LocalClient.SetPassword(loginWindow.Password);
+                        db.LocalClient.GenerateKeys(loginWindow.Password);
+                        db.Clients.Add(db.LocalClient);
+                        db.SaveChanges();
+
+                        isLoginSuccess = true;
+                    }
+                    else
+                    {
+                        // TODO: Some sort of warning about user already existing
+                    }
                 }
             }
-            else
-            {
-                db.LocalClient = db.Clients.First();
-            }
+
+            if (!isLoginSuccess) Application.Current.Shutdown();
+
+            ChannelGroupsPanel.MiniAccountPanel.DataContext = db.LocalClient;
+
             if (db.LocalClient != null && db.Spaces.Count() != 0)
             {
                 SetCurrentSpace(db.Spaces.First());

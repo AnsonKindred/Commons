@@ -36,10 +36,8 @@ namespace Commons.UI
                     Space newSpace = new Space { ID = Guid.NewGuid(), Name = addSpaceWindow.Text, Address = IPAddress.Any.ToString(), Port = 0, IsLocal = true };
                     db.Spaces.Add(newSpace);
                     db.LocalClient.Spaces.Add(newSpace);
-                    //newSpace.Clients.Add(db.LocalClient);
                     db.SaveChanges();
 
-                    Trace.WriteLine("Adding channel for new space!!!!!!!!!!");
                     Channel newChannel = new Channel { ID = Guid.NewGuid(), Name = "General", SpaceID = newSpace.ID, Space = newSpace, IsVoiceChannel = false };
                     db.Channels.Add(newChannel);
                     db.SaveChanges();
@@ -64,7 +62,7 @@ namespace Commons.UI
 
         private void DataGrid_CurrentCellChanged(object sender, SelectedCellsChangedEventArgs e)
         {
-            //Get the newly selected cells
+            // Get the newly selected cells
             IList<DataGridCellInfo> selectedCells = e.AddedCells;
             if (selectedCells.Count() != 0)
             {
